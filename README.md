@@ -1,93 +1,120 @@
-<img src="https://avatars.githubusercontent.com/u/53193414?s=200&v=4" alt="logo" width="200" height="200" align="right">
+<img src="https://avatars.githubusercontent.com/u/53193414?s=200&v=4" alt="ImmortalWrt logo" width="160" height="160" align="right">
 
-# Project ImmortalWrt
+# ImmortalWrt for ZTE SR1010
 
-ImmortalWrt is a fork of [OpenWrt](https://openwrt.org), with more packages ported, more devices supported, default optimized profiles and localization modifications for mainland China users.<br/>
-Compared to upstream, we allow to use (non-upstreamable) modifications/hacks to provide better feature/performance/support.
+本仓库基于原项目 [ImmortalWrt](https://github.com/immortalwrt/immortalwrt) 的
+[v25.12.1](https://github.com/immortalwrt/immortalwrt/releases/tag/v25.12.1) 版本进行适配，
+专用于 **ZTE SR1010（ZX279133 SoC）**。
 
-Default login address: http://192.168.1.1 or http://immortalwrt.lan, username: __root__, password: _none_.
+当前生成的是供 U-Boot 内存启动的 **FIT initramfs 镜像**，用于设备适配、调试和验证：
 
-## Download
-Built firmware images are available for many architectures and come with a package selection to be used as WiFi home router. To quickly find a factory image usable to migrate from a vendor stock firmware to ImmortalWrt, try the *Firmware Selector*.
+- 架构：ARM64
+- SoC：ZTE ZX279133
+- 设备：ZTE/ZXSLC SR1010
+- 外部内核：Linux 6.18.38
+- Web 管理：最小 LuCI，默认使用 HTTP
+- TLS 后端：mbedTLS
+- SPI-NAND：保持只读
+- 暂不生成可刷写的 factory 或 sysupgrade 镜像
 
-- [ImmortalWrt Firmware Selector](https://firmware-selector.immortalwrt.org/)
+> 本仓库是面向 SR1010 的设备适配分支，不是 ImmortalWrt 官方仓库。
+> ImmortalWrt 的通用文档、软件包和其他设备支持请参考
+> [ImmortalWrt 原项目](https://github.com/immortalwrt/immortalwrt)。
 
-If your device is supported, please follow the **Info** link to see install instructions or consult the support resources listed below.
+## 获取源码
 
-## Development
-To build your own firmware you need a GNU/Linux, BSD or macOS system (case sensitive filesystem required). Cygwin is unsupported because of the lack of a case sensitive file system.<br/>
+构建需要本仓库和准备好的 ZX279133 Linux 内核仓库：
 
-  ### Requirements
-  To build with this project, Debian 11 is preferred. And you need use the CPU based on AMD64 architecture, with at least 4GB RAM and 25 GB available disk space. Make sure the __Internet__ is accessible.
+- ImmortalWrt 适配仓库：<https://github.com/cnjn/immortalwrt>
+- Linux 内核仓库：<https://github.com/cnjn/linux-mainline-zte-zxslc-sr1010>
 
-  The following tools are needed to compile ImmortalWrt, the package names vary between distributions.
+建议将两个仓库克隆到同一目录下：
 
-  - Here is an example for Debian/Ubuntu users:<br/>
-    - Method 1:
-      <details>
-        <summary>Setup dependencies via APT</summary>
+```sh
+mkdir sr1010-build
+cd sr1010-build
 
-        ```bash
-        sudo apt update -y
-        sudo apt full-upgrade -y
-        sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-          bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
-          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
-          libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
-          libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
-          ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
-          python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
-          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
-        ```
-      </details>
-    - Method 2:
-      ```bash
-      sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-      ```
+git clone --branch build --recurse-submodules \
+  https://github.com/cnjn/linux-mainline-zte-zxslc-sr1010.git
 
-  Note:
-  - Do everything as an unprivileged user, not root, without sudo.
-  - Using CPUs based on other architectures should be fine to compile ImmortalWrt, but more hacks are needed - No warranty at all.
-  - You must __not__ have spaces or non-ascii characters in PATH or in the work folders on the drive.
-  - If you're using Windows Subsystem for Linux (or WSL), removing Windows folders from PATH is required, please see [Build system setup WSL](https://openwrt.org/docs/guide-developer/build-system/wsl) documentation.
-  - Using macOS as the host build OS is __not__ recommended. No warranty at all. You can get tips from [Build system setup macOS](https://openwrt.org/docs/guide-developer/build-system/buildroot.exigence.macosx) documentation.
-  - For more details, please see [Build system setup](https://openwrt.org/docs/guide-developer/build-system/install-buildsystem) documentation.
+git clone --branch sr1010-zx279133 \
+  https://github.com/cnjn/immortalwrt.git
+```
 
-  ### Quickstart
-  1. Run `git clone -b <branch> --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt` to clone the source code.
-  2. Run `cd immortalwrt` to enter source directory.
-  3. Run `./scripts/feeds update -a` to obtain all the latest package definitions defined in feeds.conf / feeds.conf.default
-  4. Run `./scripts/feeds install -a` to install symlinks for all obtained packages into package/feeds/
-  5. Run `make menuconfig` to select your preferred configuration for the toolchain, target system & firmware packages.
-  6. Run `make` to build your firmware. This will download all sources, build the cross-compile toolchain and then cross-compile the GNU/Linux kernel & all chosen applications for your target system.
+目录结构应为：
 
-  ### Related Repositories
-  The main repository uses multiple sub-repositories to manage packages of different categories. All packages are installed via the OpenWrt package manager called opkg. If you're looking to develop the web interface or port packages to ImmortalWrt, please find the fitting repository below.
-  - [LuCI Web Interface](https://github.com/immortalwrt/luci): Modern and modular interface to control the device via a web browser.
-  - [ImmortalWrt Packages](https://github.com/immortalwrt/packages): Community repository of ported packages.
-  - [OpenWrt Routing](https://github.com/openwrt/routing): Packages specifically focused on (mesh) routing.
-  - [OpenWrt Video](https://github.com/openwrt/video): Packages specifically focused on display servers and clients (Xorg and Wayland).
+```text
+sr1010-build/
+├── immortalwrt/
+└── linux-mainline-zte-zxslc-sr1010/
+    └── linux-6.18.38/
+```
 
-## Support Information
-For a list of supported devices see the [OpenWrt Hardware Database](https://openwrt.org/supported_devices)
-  ### Documentation
-  - [Quick Start Guide](https://openwrt.org/docs/guide-quick-start/start)
-  - [User Guide](https://openwrt.org/docs/guide-user/start)
-  - [Developer Documentation](https://openwrt.org/docs/guide-developer/start)
-  - [Technical Reference](https://openwrt.org/docs/techref/start)
+请务必为内核仓库使用 `--recurse-submodules`，否则不会取得实际的
+`linux-6.18.38` 内核源码。
 
-  ### Support Community
-  - Support Chat: group [@ctcgfw_openwrt_discuss](https://t.me/ctcgfw_openwrt_discuss) on [Telegram](https://telegram.org/).
-  - Support Chat: group [#immortalwrt](https://matrix.to/#/#immortalwrt:matrix.org) on [Matrix](https://matrix.org/).
+## 编译
+
+先按照 [ImmortalWrt 官方构建文档](https://immortalwrt.org/docs/guide-developer/toolchain/install-buildsystem)
+安装当前 Linux 发行版所需的编译依赖，然后执行：
+
+```sh
+cd sr1010-build/immortalwrt
+
+./scripts/feeds update -a
+./scripts/feeds install -a
+
+./scripts/configure-sr1010-initramfs.sh
+make -j$(nproc)
+```
+
+配置脚本默认使用相邻目录中的内核：
+
+```text
+../linux-mainline-zte-zxslc-sr1010/linux-6.18.38
+```
+
+如果内核位于其他位置，可以显式指定绝对路径：
+
+```sh
+KERNEL_TREE=/absolute/path/to/linux-6.18.38 \
+  ./scripts/configure-sr1010-initramfs.sh
+
+make -j$(nproc)
+```
+
+编译产物位于：
+
+```text
+bin/targets/zte/zx279133/immortalwrt-zte-zx279133-zte_zxslc-sr1010-initramfs.itb
+```
+
+## U-Boot 内存启动
+
+不要将 ITB 加载到 `0x82000000`，该地址可能与展开后的内核重叠。建议使用：
+
+```text
+tftpboot 0x88000000 immortalwrt-zte-zx279133-zte_zxslc-sr1010-initramfs.itb
+bootm 0x88000000
+```
+
+内核和设备树的 load/entry 地址为 `0x80200000`。
+
+启动后默认信息：
+
+- 串口：`115200n8`
+- LAN：`lan1`–`lan4`
+- LAN 地址：<http://192.168.1.1/>
+- LuCI 用户名：`root`
+- 默认密码：空
+- WAN：`eth0`
+
+## 注意事项
+
+该镜像仅在 RAM 中运行，重启后修改会丢失。目前 SPI-NAND 保持只读，
+请勿将此 ITB 当作可直接刷写的底包、factory 镜像或 sysupgrade 镜像使用。
 
 ## License
-ImmortalWrt is licensed under [GPL-2.0-only](https://spdx.org/licenses/GPL-2.0-only.html).
 
-## Acknowledgements
-<table>
-  <tr>
-    <td><a href="https://dlercloud.com/"><img src="https://user-images.githubusercontent.com/22235437/111103249-f9ec6e00-8588-11eb-9bfc-67cc55574555.png" width="183" height="52" border="0" alt="Dler Cloud"></a></td>
-    <td><a href="https://www.jetbrains.com/"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_square.png" width="120" height="120" border="0" alt="JetBrains Black Box Logo logo"></a></td>
-    <td><a href="https://sourceforge.net/"><img src="https://sourceforge.net/sflogo.php?type=17&group_id=3663829" alt="SourceForge" width=200></a></td>
-  </tr>
-</table>
+本项目沿用 ImmortalWrt 的 [GPL-2.0-only](https://spdx.org/licenses/GPL-2.0-only.html)
+许可证。原始项目及其贡献者的版权归各自所有。
