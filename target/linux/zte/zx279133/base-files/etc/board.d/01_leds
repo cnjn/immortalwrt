@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+case "$(board_name)" in
+zte,zx279133-sr1010)
+	ucidef_set_led_default "status" "Status" "sr1010:white" "1"
+	ucidef_set_led_netdev "wan" "WAN" "sr1010:red" "eth0" "link tx rx"
+	;;
+esac
+
+board_config_flush
+
+exit 0
