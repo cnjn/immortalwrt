@@ -159,6 +159,28 @@ package/utils/zte-fwslot/test/run.sh ./zte-fwslot ./fakemtd.so \
   vendor-upgrade.bin immortalwrt-sysupgrade.bin /tmp/fwslot-test
 ```
 
+## Network performance
+
+Measured on the device with this image family, except where the kernel
+repository is named:
+
+* Receiving, several TCP flows from a host to the router: about 2.2 Gbit/s on
+  a 2.5G LAN port, 94% of what TCP can carry on 2.5G, with both RX queues in
+  use. The kernel repository records 2.35 Gbit/s on the WAN port.
+* Routed and NAT traffic that the hardware flow offload takes does not use the
+  CPU; the kernel repository records about 2.3 Gbit/s.
+* TCP that the router sends itself: about 1.4 Gbit/s for one flow and 1.9 Gbit/s
+  for four, with both cores busy. The driver has no scatter-gather and no TSO,
+  and the hardware gather and the TSO template are not usable yet, so the CPU
+  copies and segments every packet. Traffic that cannot be offloaded (dae,
+  Tailscale, proxies) takes this path. The kernel repository records 1.75 to
+  1.94 Gbit/s for this direction on earlier builds.
+
+The LAN ports and the CPU port of the switch do not advertise pause, as the WAN
+MAC does. With pause negotiated, an upload settled at about 0.95 Gbit/s with
+some 25000 PAUSE frames per five seconds; with it off the same test reached
+2.22 Gbit/s. `ethtool -A` cannot turn it on again.
+
 ## Status
 
 Tried on a device: booting from a slot with the patched U-Boot, the network
