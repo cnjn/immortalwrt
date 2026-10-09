@@ -87,12 +87,37 @@ The vendor configuration partition stays read-only.
 
 * LuCI, System, Backup / Flash Firmware, or `sysupgrade <image>`: writes the
   inactive slot and reboots into it.
-* The vendor web interface is meant to accept the same file: the package is
-  unsigned, and the vendor flasher skips the signature check for that.
+* The vendor web interface accepts the same file: the package is unsigned, and
+  the vendor flasher skips the signature check for that. On a device,
+  ImmortalWrt boots afterwards, and the header the flasher wrote is intact:
+  both CRCs are valid and it differs from the package header only in the slot
+  start, the serial, the new-version flag and the CRC2 that covers them.
 * System, Firmware Slots in LuCI, or `zte-fwslot switch`: makes the other slot
   the next boot, for example to return to the vendor system. The slot is
-  checked against the CRCs of its header first, because the bootloader has no
-  fallback. `zte-fwslot info [-j]` shows both slots.
+  checked against the CRCs of its header first: a slot the bootloader picks but
+  cannot start is not replaced by the other one (seen with a kernel too large
+  for the vendor U-Boot). `zte-fwslot info [-j]` shows both slots.
+
+### Returning from the vendor system
+
+Install the ImmortalWrt image again from the vendor web interface. It erases
+the whole slot and writes a fresh header.
+
+Do not use the vendor `fw_flashing -v switch`. It rewrites the version header of
+the other slot in place, without erasing it first. NAND can only turn bits from
+1 to 0, so what lands in flash is the old and the new bytes ANDed together. The
+serial then does not get larger, the CRC2 no longer matches, and the tool
+reports success all the same. Measured on a device, with the bytes predicted
+beforehand:
+
+| `0x1f4` to `0x1ff` of the ImmortalWrt header | |
+| --- | --- |
+| before | `1c 00 00 00 01 00 00 00 e4 9f 9e bd` |
+| after `fw_flashing -v switch` (serial 30 to be written) | `1c 00 00 00 01 00 00 00 80 98 9a bd` |
+
+Every later call then fails with `version header crc failed`. The bootloader only
+checks the CRC1, so the slot still boots when it is selected, but it is no
+longer selected. `zte-fwslot switch` erases the block and writes it whole.
 
 ## Defaults
 
@@ -124,10 +149,11 @@ package/utils/zte-fwslot/test/run.sh ./zte-fwslot ./fakemtd.so \
 ## Status
 
 Tried on a device: booting from a slot with the patched U-Boot, the network
-ports and the LuCI interface of earlier builds. Not tried yet, because they
-were added later or need the other system: installing from the vendor web
-interface, switching slots from LuCI, the reset button, the lights (the status
-light following the WAN, the socket lights) and hardware flow offloading.
+ports and the LuCI interface of earlier builds; installing from the vendor web
+interface; `zte-fwslot switch` from the command line to the vendor system.
+Not tried yet, because they were added later: the Firmware Slots page in LuCI,
+the reset button, the lights (the status light following the WAN, the socket
+lights) and hardware flow offloading.
 
 The tests above cover `zte-fwslot` against simulated flash, and the slot
 headers the vendor flasher wrote in a flash dump pass its checks.
