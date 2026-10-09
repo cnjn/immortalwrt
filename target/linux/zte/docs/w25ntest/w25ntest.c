@@ -10,6 +10,7 @@
  *
  * Usage:  w25ntest /dev/mtdN --list
  *         w25ntest /dev/mtdN BLOCK --yes [--sweep]
+ *         w25ntest /dev/mtdN --survey      (read only)
  *
  * It erases BLOCK, programs nine pages of it in different ways (all with the same data),
  * reads each back with the ECC on and again raw, and erases BLOCK again. It refuses a
@@ -28,7 +29,7 @@
 
 #define MAXPAGE 4096
 #define MAXOOB  256
-#define NSC     9
+#define NSC     11
 
 static int fd;
 static struct mtd_info_user mi;
@@ -124,6 +125,21 @@ static int write_oob_auto(uint64_t page_off, const unsigned char *oob, unsigned 
 	return ioctl(fd, MEMWRITE, &w);
 }
 
+/* ECC off: the chip computes no parity (the way the vendor kernel writes, it seems) */
+static int write_raw(uint64_t page_off, const unsigned char *buf, const unsigned char *oob, unsigned ooblen)
+{
+	struct mtd_write_req w;
+
+	memset(&w, 0, sizeof(w));
+	w.start = page_off;
+	w.len = buf ? mi.writesize : 0;
+	w.ooblen = ooblen;
+	w.usr_data = (uintptr_t)buf;
+	w.usr_oob = (uintptr_t)oob;
+	w.mode = MTD_OPS_RAW;
+	return ioctl(fd, MEMWRITE, &w);
+}
+
 static int erase_block(unsigned blk)
 {
 	struct erase_info_user e = { .start = blk_off(blk), .length = mi.erasesize };
@@ -214,7 +230,7 @@ static void hexline(const char *tag, const unsigned char *b, unsigned from, unsi
 static const unsigned char cm8[8] = { 0x85, 0x19, 0x03, 0x20, 0x08, 0x00, 0x00, 0x00 };
 
 enum {
-	K_DATA, K_BOTH, K_OOB_THEN_DATA_AUTO, K_VENDOR, K_UD2, K_SPARE1, K_DATA_THEN_OOB, K_TWO_BYTES, K_OOB_ONLY,
+	K_DATA, K_BOTH, K_OOB_THEN_DATA_AUTO, K_VENDOR, K_UD2, K_SPARE1, K_DATA_THEN_OOB, K_TWO_BYTES, K_OOB_ONLY, K_RAW_DATA, K_RAW_VENDOR,
 };
 
 struct sc {
@@ -234,6 +250,8 @@ static const struct sc scs[NSC] = {
 	{ "S6", "the data first, the clean marker (AUTO, spare 2..9) next", K_DATA_THEN_OOB, 0 },
 	{ "S7", "spare 2..3 only (User Data II) first, the data next", K_TWO_BYTES, 0 },
 	{ "S8", "reference: the clean marker (AUTO, spare 2..9) alone, no data", K_OOB_ONLY, 1 },
+	{ "S9", "ECC OFF while writing: the data in one program, read back with the ECC on", K_RAW_DATA, 0 },
+	{ "S10", "ECC OFF while writing, the vendor way: clean marker (spare 2..7, 18..19) first, the data next", K_RAW_VENDOR, 0 },
 };
 
 struct result {
@@ -317,6 +335,17 @@ static int run_scenario(unsigned blk, unsigned pg, const struct sc *s, struct re
 		rc = write_oob_only(po, 2, cm8, 2);
 		if (!rc)
 			rc = write_data_only(po, data);
+		break;
+	case K_RAW_DATA:
+		rc = write_raw(po, data, NULL, 0);
+		break;
+	case K_RAW_VENDOR:
+		memset(o, 0xff, sizeof(o));
+		memcpy(o + 2, cm8, 6);		/* spare 2..7, written from offset 0 */
+		o[18] = 0x00; o[19] = 0x00;	/* spare 18..19 */
+		rc = write_raw(po, NULL, o, 20);
+		if (!rc)
+			rc = write_raw(po, data, NULL, 0);
 		break;
 	case K_OOB_ONLY:
 		rc = write_oob_auto(po, cm8, 8);
@@ -430,9 +459,93 @@ static void sweep(unsigned blk)
 	}
 }
 
+/* read only: which pages hold data with parity, and which hold data with the parity area still 0xff */
+static void survey(void)
+{
+	static struct rd r, e;
+	unsigned nblk = mi.size / mi.erasesize, ppb = mi.erasesize / mi.writesize;
+	unsigned empty = 0, withpar = 0, nopar = 0, nopar_err = 0, withpar_err = 0, bad = 0, n = 0, shown = 0;
+	unsigned oobn = mi.oobsize < MAXOOB ? mi.oobsize : MAXOOB;
+
+	if (oobn < 96) {
+		printf("spare area of %u bytes: no parity area to look at\n", oobn);
+		return;
+	}
+	for (unsigned blk = 0; blk < nblk; blk++) {
+		if (is_bad(blk)) { bad++; continue; }
+		for (unsigned pg = 0; pg < ppb; pg++) {
+			uint64_t po = blk_off(blk) + (uint64_t)pg * mi.writesize;
+			int dataff = 1, parff = 1;
+
+			if (read_req(po, 1, oobn, MTD_OPS_RAW, &r) < 0)
+				continue;
+			n++;
+			for (unsigned i = 0; i < mi.writesize && dataff; i++)
+				if (r.data[i] != 0xff) dataff = 0;
+			for (unsigned s = 0; s < 4; s++)
+				for (unsigned j = 0; j < 7; j++)
+					if (r.oob[64 + 8 * s + j] != 0xff) parff = 0;
+			if (dataff && parff) { empty++; continue; }
+			read_req(po, 1, oobn, MTD_OPS_PLACE_OOB, &e);
+			if (parff) {
+				nopar++;
+				if (e.err || e.st.uncorrectable_errors || e.st.corrected_bitflips) nopar_err++;
+				if (shown < 6) { printf("  data, parity area 0xff: block %u page %u (ECC-on read: %s)\n", blk, pg, errname(e.err)); shown++; }
+			} else {
+				withpar++;
+				if (e.err || e.st.uncorrectable_errors) {
+					withpar_err++;
+					if (withpar_err <= 20) {
+						printf("  ECC error: block %u page %u (%s, uncorrectable %u, corrected %u)\n",
+						       blk, pg, errname(e.err), e.st.uncorrectable_errors, e.st.corrected_bitflips);
+						hexline("data 0..23", r.data, 0, 24);
+						hexline("spare 0..23", r.oob, 0, 24);
+						hexline("spare 64..95", r.oob, 64, 96);
+					}
+				}
+			}
+		}
+	}
+	/* page 0 of every block: who wrote it, and is there a clean marker in the spare area? */
+	{
+		unsigned inl = 0, node_cm = 0, node_nocm = 0, empty_cm = 0, empty_nocm = 0, other = 0, ex = 0;
+
+		for (unsigned blk = 0; blk < nblk; blk++) {
+			int cm, dataff = 1, node;
+
+			if (is_bad(blk) || read_req(blk_off(blk), 1, oobn, MTD_OPS_RAW, &r) < 0)
+				continue;
+			for (unsigned i = 0; i < mi.writesize && dataff; i++)
+				if (r.data[i] != 0xff) dataff = 0;
+			cm = r.oob[2] == 0x85 && r.oob[3] == 0x19 && r.oob[4] == 0x03 && r.oob[5] == 0x20;
+			node = r.data[0] == 0x85 && r.data[1] == 0x19;
+			if (node && r.data[2] == 0x03 && r.data[3] == 0x20 && !cm)
+				inl++;
+			else if (dataff)
+				cm ? empty_cm++ : empty_nocm++;
+			else if (node)
+				cm ? node_cm++ : node_nocm++;
+			else
+				other++;
+			if (node && cm && ex < 5) { printf("  node at offset 0 AND a clean marker in the spare area: block %u\n", blk); ex++; }
+		}
+		printf("page 0 of the %u blocks:\n", nblk - bad);
+		printf("  page-sized clean marker node in the data (written by this kernel)  %u\n", inl);
+		printf("  JFFS2 node at offset 0, clean marker in the spare area           %u\n", node_cm);
+		printf("  JFFS2 node at offset 0, no clean marker in the spare area        %u\n", node_nocm);
+		printf("  empty, clean marker in the spare area                            %u\n", empty_cm);
+		printf("  empty, no clean marker                                           %u\n", empty_nocm);
+		printf("  something else                                                   %u\n", other);
+	}
+	printf("survey of %u pages (%u bad blocks skipped):\n", n, bad);
+	printf("  empty (data and parity 0xff)                     %u\n", empty);
+	printf("  data with parity (written with the ECC on)        %u   of them with an ECC error on read: %u\n", withpar, withpar_err);
+	printf("  data, parity area 0xff (written with the ECC off) %u   of them with an ECC error or correction on read: %u\n", nopar, nopar_err);
+}
+
 static void usage(void)
 {
-	fprintf(stderr, "usage: w25ntest /dev/mtdN --list\n       w25ntest /dev/mtdN BLOCK --yes [--sweep]\n");
+	fprintf(stderr, "usage: w25ntest /dev/mtdN --list\n       w25ntest /dev/mtdN BLOCK --yes [--sweep]\n       w25ntest /dev/mtdN --survey   (read only)\n");
 	exit(2);
 }
 
@@ -445,6 +558,14 @@ int main(int argc, char **argv)
 
 	if (argc < 3 || sscanf(argv[1], "/dev/mtd%d", &mtdnum) != 1)
 		usage();
+	if (!strcmp(argv[2], "--survey")) {
+		fd = open(argv[1], O_RDONLY);
+		if (fd < 0 || ioctl(fd, MEMGETINFO, &mi) < 0)
+			die("open");
+		printf("%s: %u blocks of %u, page %u, spare %u (read only)\n", argv[1], mi.size / mi.erasesize, mi.erasesize, mi.writesize, mi.oobsize);
+		survey();
+		return 0;
+	}
 	if (!strcmp(argv[2], "--list"))
 		list = 1;
 	else if (argc >= 4 && !strcmp(argv[3], "--yes")) {
