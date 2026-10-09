@@ -9,7 +9,8 @@ DEFAULT_PACKAGES.tweak:=
 DEFAULT_PACKAGES += \
 	dnsmasq ethtool ip-full \
 	luci-base luci-mod-admin-full luci-theme-bootstrap \
-	uhttpd uhttpd-mod-ubus
+	uhttpd uhttpd-mod-ubus \
+	openssh-sftp-server
 
 define Target/Description
 	Build initramfs FIT images for the ZTE ZX279133 SoC family.

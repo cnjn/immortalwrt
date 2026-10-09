@@ -6,4 +6,14 @@ config KERNEL_DEVTMPFS
 config KERNEL_DEVTMPFS_MOUNT
 	default y
 
+config SR1010_VENDOR_TEMPLATE
+	string "SR1010 vendor upgrade package template (.bin)"
+	depends on TARGET_zte_zx279133
+	default ""
+	help
+	  Absolute path to a ZXSLC SR1010 vendor upgrade package. Its U-Boot and
+	  version header are reused when building the flashable vendor-format
+	  image. Leave empty to build only the RAM initramfs image. The vendor
+	  package is not shipped in this tree.
+
 endif

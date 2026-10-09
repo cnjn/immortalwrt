@@ -208,6 +208,19 @@ CONFIG_MVMDIO=y
 # CONFIG_NET_VENDOR_MICROSOFT is not set
 # CONFIG_NET_VENDOR_VERTEXCOM is not set
 # CONFIG_NET_VENDOR_WANGXUN is not set
+# The network driver wants its microcode while probing, long before the root
+# filesystem is mounted, and would otherwise wait 60 s for user space. Build it
+# into the kernel. The directory is relative to the kernel tree, which sits next
+# to this tree (scripts/configure-sr1010-flash.sh checks that).
+CONFIG_EXTRA_FIRMWARE="zte/zx279133/mcode_intel.bin"
+CONFIG_EXTRA_FIRMWARE_DIR="../../immortalwrt/target/linux/zte/zx279133/firmware"
+CONFIG_NVMEM_LAYOUT_ZTE_TAGS=y
+CONFIG_HWMON=y
+CONFIG_SENSORS_ZX279133_PVT=y
+CONFIG_PPS=y
+CONFIG_PTP_1588_CLOCK=y
+CONFIG_ZTE_ZX279133_BOOTINFO=y
+CONFIG_ZTE_ZX279133_ROOTFS=y
 CONFIG_ZTE_ZX279133_ETH=y
 CONFIG_ZTE_ZX279133_RTL8372N=y
 CONFIG_MARVELL_10G_PHY=y
@@ -282,7 +295,6 @@ CONFIG_I2C_SYNQUACER=y
 CONFIG_I2C_THUNDERX=y
 CONFIG_SPI=y
 CONFIG_SPI_ZX279133_SFC=y
-# CONFIG_PTP_1588_CLOCK is not set
 CONFIG_PINCTRL_SINGLE=y
 CONFIG_PINCTRL_ZX279133=y
 CONFIG_PINCTRL_IMX91=y
@@ -529,7 +541,10 @@ CONFIG_JFFS2_FS_XATTR=y
 # CONFIG_JFFS2_FS_POSIX_ACL is not set
 # CONFIG_JFFS2_FS_SECURITY is not set
 CONFIG_JFFS2_COMPRESSION_OPTIONS=y
-# CONFIG_JFFS2_ZLIB is not set
+CONFIG_JFFS2_ZLIB=y
+CONFIG_JFFS2_RTIME=y
+# CONFIG_JFFS2_LZO is not set
+CONFIG_JFFS2_CMODE_PRIORITY=y
 CONFIG_SQUASHFS=y
 CONFIG_SQUASHFS_FILE_DIRECT=y
 CONFIG_SQUASHFS_COMPILE_DECOMP_MULTI_PERCPU=y
@@ -579,3 +594,20 @@ CONFIG_RCU_CPU_STALL_TIMEOUT=60
 # CONFIG_RCU_TRACE is not set
 # CONFIG_FTRACE is not set
 CONFIG_ATOMIC64_SELFTEST=y
+# The vendor bootloader passes vendor root= arguments; the rootfs comes from
+# the zx279133-rootfs MTD device registered after the seven fixed partitions.
+CONFIG_CMDLINE="console=ttyAMA0,115200n8 root=/dev/mtdblock7 rootfstype=squashfs ro rootwait"
+CONFIG_CMDLINE_FORCE=y
+
+# The generic OpenWrt baseline switches these upper-level options off, which drops
+# the options below them that the board needs: the tags partition (MAC addresses),
+# the PVT sensor and its eFuse, and the built-in xHCI controller.
+CONFIG_NVMEM=y
+CONFIG_NVMEM_LAYOUTS=y
+CONFIG_THERMAL=y
+CONFIG_THERMAL_OF=y
+CONFIG_THERMAL_GOV_STEP_WISE=y
+CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB_XHCI_PLATFORM=y
+CONFIG_WATCHDOG_SYSFS=y
