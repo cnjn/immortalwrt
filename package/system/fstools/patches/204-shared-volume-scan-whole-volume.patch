@@ -4,10 +4,11 @@ Subject: libfstools: look for the jffs2 of a shared volume in the whole volume
 The shared overlay volume was taken for a jffs2 only if a jffs2 node was found in
 its first 1 MiB. After the vendor firmware used the partition, its erase blocks at
 the start were empty (the vendor firmware erased and reused them), no node was
-found, the volume was taken for blank and mount_root used an overlay in RAM. At
-the end of the boot the switch to jffs2 mounted the existing file system and then
-copied the files of the RAM overlay over the ones in .owrt, which replaced the
-settings by those of the first boot.
+found, the volume was taken for blank and mount_root used an overlay in RAM. The
+jffs2 was mounted only at the end of the boot, about 40 s later than usual. The
+code that switches to it copies the files of the RAM overlay into .owrt over
+files of the same name, which could replace settings by those of a first boot; on
+the device that was not seen, the settings were intact.
 
 Scan the whole volume, stop at the first node.
 
