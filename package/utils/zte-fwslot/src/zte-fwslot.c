@@ -10,8 +10,9 @@
  * Flashing mirrors the vendor fw_flashing program: verify the package CRCs,
  * erase the inactive slot, write the package body to good erase blocks only,
  * then write the 512-byte version header to the next good block with a serial
- * larger than any other slot. "switch" only rewrites the other slot's header
- * with a higher serial, so the next boot selects it.
+ * larger than any other slot. "switch" checks the other slot against the CRCs of
+ * its header and then only rewrites that header with a higher serial, so the
+ * next boot selects it.
  *
  * This is a read/modify tool for the two firmware-slot MTD partitions of the
  * device it runs on. It never touches bootloader, tags or config partitions.
@@ -33,6 +34,9 @@
 #define UBOOT_SIZE	0x180000
 #define OUTER_HDR_SIZE	0x14
 
+#define KERNEL_MAGIC_SIZE 32	/* in front of the kernel, behind the U-Boot */
+
+#define H_VERSION	0x10
 #define H_FW_SIZE	0x30
 #define H_KERNEL_SIZE	0x34
 #define H_KERNEL_FILEOFS 0x38
@@ -43,6 +47,7 @@
 #define H_PRODUCT	0x6c
 #define H_UBOOT_CRC	0x98
 #define H_CRC		0xa4
+#define H_BUILD		0xa8
 #define H_INNER_MAGIC	0xf4
 #define H_SLOT_START	0x1f0
 #define H_SERIAL	0x1f4
@@ -75,14 +80,19 @@ static void crc_init(void)
 	}
 }
 
-static uint32_t crc32(const void *buf, size_t len)
+/* Running CRC: start from 0xffffffff and invert the result at the end. */
+static uint32_t crc32_update(uint32_t c, const void *buf, size_t len)
 {
 	const uint8_t *p = buf;
-	uint32_t c = 0xffffffffu;
 
 	while (len--)
 		c = crc_table[(c ^ *p++) & 0xff] ^ (c >> 8);
-	return c ^ 0xffffffffu;
+	return c;
+}
+
+static uint32_t crc32(const void *buf, size_t len)
+{
+	return crc32_update(0xffffffffu, buf, len) ^ 0xffffffffu;
 }
 
 static uint32_t rd32(const uint8_t *p, size_t ofs)
@@ -170,6 +180,19 @@ static bool mtd_bad(struct mtd *m, uint64_t ofs)
 	return ioctl(m->fd, MEMGETBADBLOCK, &o) > 0;
 }
 
+/*
+ * Both the vendor U-Boot and the kernel locate the payload by skipping the
+ * blocks the bad block table lists, so a block that cannot be written must be
+ * listed there, or everything behind it would be read from the wrong place.
+ */
+static void mtd_mark_bad(struct mtd *m, uint64_t ofs)
+{
+	long long o = ofs;
+
+	if (ioctl(m->fd, MEMSETBADBLOCK, &o) < 0)
+		perror("  could not mark the block bad");
+}
+
 static int mtd_erase(struct mtd *m, uint64_t ofs)
 {
 	struct erase_info_user e = { .start = ofs, .length = m->info.erasesize };
@@ -227,6 +250,117 @@ static uint32_t max_serial(void)
 		close(m.fd);
 	}
 	return best;
+}
+
+/* Offset of the slot the system booted from, -1 when the kernel does not say. */
+static long running_slot_offset(void)
+{
+	FILE *f = fopen("/sys/firmware/zx279133/slot_offset", "r");
+	long so = -1;
+
+	if (f) {
+		if (fscanf(f, "%li", &so) != 1)
+			so = -1;
+		fclose(f);
+	}
+	return so;
+}
+
+static int slot_index(long offset)
+{
+	return offset == (long)slot_start[0] ? 0 :
+	       offset == (long)slot_start[1] ? 1 : -1;
+}
+
+/* A part of the payload and the CRC its version header promises. */
+struct region {
+	const char *fail;
+	uint64_t start, len;
+	uint32_t want, crc;
+};
+
+static void region_feed(struct region *r, uint64_t pos, const uint8_t *buf,
+			size_t n)
+{
+	uint64_t lo = pos > r->start ? pos : r->start;
+	uint64_t end = r->start + r->len;
+	uint64_t hi = pos + n < end ? pos + n : end;
+
+	if (lo < hi)
+		r->crc = crc32_update(r->crc, buf + (lo - pos), hi - lo);
+}
+
+/*
+ * Check a slot against the version header the bootloader goes by: the header
+ * itself, then the U-Boot, the kernel and the root filesystem. The payload
+ * starts at the beginning of the slot and sits in the good blocks, in order,
+ * with the U-Boot first, then the kernel behind its magic, then the root
+ * filesystem at the distance the header records between the two.
+ *
+ * Returns NULL for an intact slot, otherwise what is wrong with it.
+ */
+static const char *slot_verify(struct mtd *m, const uint8_t *hdr)
+{
+	uint32_t bs = m->info.erasesize;
+	uint64_t body_len = rd32(hdr, H_FW_SIZE);
+	uint32_t koff = rd32(hdr, H_KERNEL_FILEOFS);
+	uint32_t foff = rd32(hdr, H_FS_FILEOFS);
+	uint64_t kstart = UBOOT_SIZE + KERNEL_MAGIC_SIZE;
+	uint64_t pos = 0, ofs = 0;
+	const char *bad = NULL;
+	struct region r[3];
+	uint8_t *buf;
+
+	if (crc32(hdr, H_CRC) != rd32(hdr, H_CRC) ||
+	    crc32(hdr, H_CRC2) != rd32(hdr, H_CRC2))
+		return "version header CRC mismatch";
+	if (foff < koff)
+		return "bad firmware layout";
+
+	r[0] = (struct region){ "U-Boot CRC mismatch", 0, UBOOT_SIZE,
+				rd32(hdr, H_UBOOT_CRC), 0xffffffffu };
+	r[1] = (struct region){ "kernel CRC mismatch", kstart,
+				rd32(hdr, H_KERNEL_SIZE),
+				rd32(hdr, H_KERNEL_CRC), 0xffffffffu };
+	r[2] = (struct region){ "root filesystem CRC mismatch",
+				kstart + (foff - koff), rd32(hdr, H_FS_SIZE),
+				rd32(hdr, H_FS_CRC), 0xffffffffu };
+	if (body_len > m->info.size)
+		return "bad firmware layout";
+	for (int i = 0; i < 3; i++)
+		if (r[i].start + r[i].len > body_len)
+			return "bad firmware layout";
+
+	buf = malloc(bs);
+	if (!buf)
+		return "out of memory";
+	while (pos < body_len) {
+		size_t n = body_len - pos < bs ? body_len - pos : bs;
+
+		if (ofs + bs > m->info.size) {
+			bad = "payload runs past the end of the slot";
+			break;
+		}
+		if (mtd_bad(m, ofs)) {
+			ofs += bs;
+			continue;
+		}
+		if (pread(m->fd, buf, n, ofs) != (ssize_t)n) {
+			bad = "read error";
+			break;
+		}
+		for (int i = 0; i < 3; i++)
+			region_feed(&r[i], pos, buf, n);
+		pos += n;
+		ofs += bs;
+	}
+	free(buf);
+	if (bad)
+		return bad;
+	for (int i = 0; i < 3; i++)
+		if ((r[i].crc ^ 0xffffffffu) != r[i].want)
+			return r[i].fail;
+	return NULL;
 }
 
 /* Map the package file and verify the CRCs the bootloader checks. */
@@ -310,8 +444,9 @@ static uint64_t write_block(struct mtd *m, uint64_t ofs, const uint8_t *buf)
 		}
 		if (lseek(m->fd, ofs, SEEK_SET) < 0 ||
 		    write(m->fd, buf, bs) != (ssize_t)bs) {
-			fprintf(stderr, "  write failed at %#llx, skipping\n",
+			fprintf(stderr, "  write failed at %#llx, marking the block bad\n",
 				(unsigned long long)ofs);
+			mtd_mark_bad(m, ofs);
 			ofs += bs;
 			continue;
 		}
@@ -359,15 +494,15 @@ static int cmd_flash(const char *path)
 	uint32_t bs, serial;
 	uint64_t ofs, left;
 	const uint8_t *src;
-	long so = -1;
-	FILE *f;
+	int running;
 
 	package_load(&p, path);
 
-	/* Current slot comes from the bootinfo driver; flash the other one. */
-	f = fopen("/sys/firmware/zx279133/slot_offset", "r");
-	if (f) { if (fscanf(f, "%li", &so) != 1) so = -1; fclose(f); }
-	target_slot = (so == (long)slot_start[1]) ? 0 : 1;
+	/* The running slot comes from the bootinfo driver; flash the other one. */
+	running = slot_index(running_slot_offset());
+	if (running < 0)
+		errno = ENODEV, die("cannot tell which slot is running");
+	target_slot = running ^ 1;
 
 	idx = mtd_find_by_offset(slot_start[target_slot]);
 	if (idx < 0)
@@ -431,17 +566,16 @@ static int cmd_flash(const char *path)
 
 static int cmd_switch(void)
 {
-	long so = -1;
-	FILE *f = fopen("/sys/firmware/zx279133/slot_offset", "r");
-	int cur_slot, other, idx;
+	int running = slot_index(running_slot_offset()), other, idx;
 	struct mtd m;
 	long hpos;
 	uint32_t serial;
 	uint8_t hdr[VER_HDR_SIZE];
+	const char *why;
 
-	if (f) { if (fscanf(f, "%li", &so) != 1) so = -1; fclose(f); }
-	cur_slot = (so == (long)slot_start[1]) ? 1 : 0;
-	other = cur_slot ^ 1;
+	if (running < 0)
+		errno = ENODEV, die("cannot tell which slot is running");
+	other = running ^ 1;
 
 	idx = mtd_find_by_offset(slot_start[other]);
 	if (idx < 0)
@@ -449,10 +583,20 @@ static int cmd_switch(void)
 	mtd_open(&m, idx, true);
 
 	hpos = slot_scan(&m, &serial);
-	if (hpos < 0)
-		errno = ENODATA, die("other slot has no valid firmware");
-
+	if (hpos < 0) {
+		fprintf(stderr, "zte-fwslot: slot %d holds no firmware\n", other);
+		return 1;
+	}
 	mtd_read(&m, hpos, hdr, sizeof(hdr));
+
+	/* The bootloader does not fall back: never point it at a broken slot. */
+	why = slot_verify(&m, hdr);
+	if (why) {
+		fprintf(stderr, "zte-fwslot: slot %d is damaged (%s), not switching\n",
+			other, why);
+		return 1;
+	}
+
 	wr32(hdr, H_SERIAL, max_serial() + 1);
 	wr32(hdr, H_CRC2, crc32(hdr, H_CRC2));
 
@@ -475,29 +619,100 @@ static int cmd_switch(void)
 	return 0;
 }
 
-static int cmd_info(void)
+struct slot_info {
+	int mtd;		/* -1: no such partition */
+	bool valid;		/* a version header was found */
+	long hpos;
+	uint8_t hdr[VER_HDR_SIZE];
+};
+
+static void slot_info_read(int s, struct slot_info *si)
 {
-	long so = -1;
-	FILE *f = fopen("/sys/firmware/zx279133/slot_offset", "r");
+	struct mtd m;
+	uint32_t serial;
 
-	if (f) { if (fscanf(f, "%li", &so) != 1) so = -1; fclose(f); }
-	printf("running slot offset: %#lx\n", so);
+	memset(si, 0, sizeof(*si));
+	si->mtd = mtd_find_by_offset(slot_start[s]);
+	if (si->mtd < 0)
+		return;
+	mtd_open(&m, si->mtd, false);
+	si->hpos = slot_scan(&m, &serial);
+	if (si->hpos >= 0) {
+		si->valid = true;
+		mtd_read(&m, si->hpos, si->hdr, sizeof(si->hdr));
+	}
+	close(m.fd);
+}
+
+/* The slot the bootloader starts next: valid, with the highest serial. */
+static int next_slot(const struct slot_info *si)
+{
+	int best = -1;
+
+	for (int s = 0; s < 2; s++)
+		if (si[s].valid && (best < 0 ||
+		    rd32(si[s].hdr, H_SERIAL) > rd32(si[best].hdr, H_SERIAL)))
+			best = s;
+	return best;
+}
+
+/* Print a header string field as a JSON string. */
+static void json_str(const uint8_t *s, size_t max)
+{
+	putchar('"');
+	for (size_t i = 0; i < max && s[i]; i++) {
+		if (s[i] == '"' || s[i] == '\\')
+			printf("\\%c", s[i]);
+		else if (s[i] < 0x20 || s[i] >= 0x7f)
+			printf("\\u%04x", s[i]);
+		else
+			putchar(s[i]);
+	}
+	putchar('"');
+}
+
+static int cmd_info(bool json)
+{
+	int running = slot_index(running_slot_offset());
+	struct slot_info si[2];
+	int next;
+
+	for (int s = 0; s < 2; s++)
+		slot_info_read(s, &si[s]);
+	next = next_slot(si);
+
+	if (json) {
+		printf("{\"running\":%d,\"next\":%d,\"slots\":[", running, next);
+		for (int s = 0; s < 2; s++) {
+			printf("%s{\"slot\":%d,\"mtd\":%d,\"valid\":%s",
+			       s ? "," : "", s, si[s].mtd, si[s].valid ? "true" : "false");
+			if (si[s].valid) {
+				printf(",\"serial\":%u,\"version\":", rd32(si[s].hdr, H_SERIAL));
+				json_str(si[s].hdr + H_VERSION, 32);
+				printf(",\"build\":");
+				json_str(si[s].hdr + H_BUILD, 16);
+				printf(",\"product\":");
+				json_str(si[s].hdr + H_PRODUCT, 52);
+			}
+			printf("}");
+		}
+		printf("]}\n");
+		return 0;
+	}
+
+	printf("running slot: %d\n", running);
 	for (int s = 0; s < 2; s++) {
-		int idx = mtd_find_by_offset(slot_start[s]);
-		struct mtd m;
-		uint32_t serial;
-		long hpos;
-
-		printf("slot %d: start %#x mtd%d", s, slot_start[s], idx);
-		if (idx < 0) { printf(" (missing)\n"); continue; }
-		mtd_open(&m, idx, false);
-		hpos = slot_scan(&m, &serial);
-		if (hpos < 0)
+		printf("slot %d: start %#x mtd%d", s, slot_start[s], si[s].mtd);
+		if (si[s].mtd < 0)
+			printf(" (missing)\n");
+		else if (!si[s].valid)
 			printf(" (no valid firmware)\n");
 		else
-			printf(" header@%#lx serial=%u%s\n", hpos, serial,
-			       so == (long)slot_start[s] ? " [running]" : "");
-		close(m.fd);
+			printf(" header@%#lx serial=%u version=\"%.32s\"%s%s\n",
+			       si[s].hpos, rd32(si[s].hdr, H_SERIAL),
+			       (const char *)si[s].hdr + H_VERSION,
+			       s == running ? " [running]" : "",
+			       s == next ? " [next boot]" : "");
 	}
 	return 0;
 }
@@ -512,12 +727,14 @@ int main(int argc, char **argv)
 	if (argc == 2 && !strcmp(argv[1], "switch"))
 		return cmd_switch();
 	if (argc == 2 && !strcmp(argv[1], "info"))
-		return cmd_info();
+		return cmd_info(false);
+	if (argc == 3 && !strcmp(argv[1], "info") && !strcmp(argv[2], "-j"))
+		return cmd_info(true);
 
 	fprintf(stderr,
 		"usage: zte-fwslot check <package.bin>  verify a package without writing\n"
 		"       zte-fwslot flash <package.bin>  write package to the inactive slot\n"
-		"       zte-fwslot switch              select the other slot on next boot\n"
-		"       zte-fwslot info                show both slots\n");
+		"       zte-fwslot switch              check the other slot and make it the next boot\n"
+		"       zte-fwslot info [-j]           show both slots, -j as JSON\n");
 	return 1;
 }
