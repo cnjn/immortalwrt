@@ -93,6 +93,12 @@ neither those nor summary nodes), so this kernel builds JFFS2 with the same
 feature set. A `Plugin` partition written by an earlier build, which has such
 nodes, has to be erased once.
 
+The JFFS2 of the shared partition is looked for in the whole partition, because
+the vendor firmware may leave the first erase blocks empty. The way the two
+systems share the partition, what was measured and what is not known:
+[docs/jffs2-on-spi-nand.md](docs/jffs2-on-spi-nand.md); a script set to test it:
+[docs/coexist/](docs/coexist/).
+
 The SPI flash controller runs at 50 MHz and the NAND is read with four data
 lines (commands, addresses and writes use one). Reading the 40 MiB `Plugin`
 partition takes about 3.9 s, and mounting its JFFS2 about a quarter of a second.
