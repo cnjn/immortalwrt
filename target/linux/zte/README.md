@@ -81,6 +81,13 @@ of the overlay. When the firmware is replaced from elsewhere, for example the
 vendor web interface, the overlay no longer matches the root filesystem; the
 settings that sysupgrade keeps are rescued and the rest is dropped.
 
+The `Plugin` partition is JFFS2 on a SPI-NAND with on-die ECC, where a page can
+be programmed only once between erases. The kernel therefore keeps the JFFS2
+clean markers in the data and not in the OOB; see
+[docs/jffs2-on-spi-nand.md](docs/jffs2-on-spi-nand.md). If the overlay volume
+still cannot be mounted, the router starts with an overlay in RAM and says so in
+the log, instead of staying on the read-only root file system.
+
 The vendor configuration partition stays read-only.
 
 ## Installing and switching
@@ -190,10 +197,14 @@ some 25000 PAUSE frames per five seconds; with it off the same test reached
 
 Tried on a device: booting from a slot with the patched U-Boot, the network
 ports and the LuCI interface of earlier builds; installing from the vendor web
-interface; `zte-fwslot switch` from the command line to the vendor system.
-Not tried yet, because they were added later: the Firmware Slots page in LuCI,
-the reset button, the lights (the status light following the WAN, the socket
-lights) and hardware flow offloading.
+interface; `zte-fwslot switch` from the command line to the vendor system; the
+overlay in the Plugin partition, whose settings survive a reboot.
+Not tried yet, because they were added later or need the other system: the
+Firmware Slots page in LuCI, the reset button, the lights (the status light
+following the WAN, the socket lights), extroot, the rescue of the overlay's
+settings after the firmware was replaced from the vendor web interface, the
+vendor firmware reading a Plugin partition written by this one, and hardware
+flow offloading.
 
 The tests above cover `zte-fwslot` against simulated flash, and the slot
 headers the vendor flasher wrote in a flash dump pass its checks.
