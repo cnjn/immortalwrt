@@ -100,6 +100,9 @@ The vendor configuration partition stays read-only.
 
 ### Returning from the vendor system
 
+How the slots and the version header work, and the evidence for what follows, is in
+[docs/vendor-slots.md](docs/vendor-slots.md) (in Chinese).
+
 Install the ImmortalWrt image again from the vendor web interface. It erases
 the whole slot and writes a fresh header.
 

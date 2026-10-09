@@ -115,7 +115,7 @@ immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade-stock-uboot.
 - 从原厂系统回到 ImmortalWrt：在原厂网页里再刷一次镜像。**不要用原厂的 `fw_flashing -v switch`**：
   它就地改写另一个槽的版本头而不先擦除，NAND 只能把位从 1 变 0，写进去的是新旧字节按位与的结果，
   序号不会变大、CRC2 也会错，工具却报告成功。已在实机上验证，预测的字节与实测一致。
-  详细说明见 [target/linux/zte/README.md](target/linux/zte/README.md)。
+  详细说明和实测数据见 [target/linux/zte/docs/vendor-slots.md](target/linux/zte/docs/vendor-slots.md)。
 - 复位键：短按重启，按住 5 秒恢复出厂设置。
 
 ## 默认设置
