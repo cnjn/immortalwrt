@@ -5,6 +5,10 @@
 # See /LICENSE for more information.
 #
 
+# Kernel 6.18 moved generic crypto and CRC code to lib/ and folded the arm64
+# NEON code into the libraries: some module files have new names or are gone.
+K618:=$(filter 6.18.%,$(LINUX_VERSION))
+
 CRYPTO_MENU:=Cryptographic API modules
 
 CRYPTO_MODULES = \
@@ -155,8 +159,8 @@ define KernelPackage/crypto-crc32c
   TITLE:=CRC32c CRC module
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:=CONFIG_CRYPTO_CRC32C
-  FILES:=$(LINUX_DIR)/crypto/crc32c_generic.ko
-  AUTOLOAD:=$(call AutoLoad,04,crc32c_generic,1)
+  FILES:=$(LINUX_DIR)/crypto/$(if $(K618),crc32c-cryptoapi,crc32c_generic).ko
+  AUTOLOAD:=$(call AutoLoad,04,$(if $(K618),crc32c-cryptoapi,crc32c_generic),1)
   $(call AddDepends/crypto)
 endef
 
@@ -585,7 +589,7 @@ KernelPackage/crypto-lib-chacha20/armeb=$(KernelPackage/crypto-lib-chacha20/arm)
 
 define KernelPackage/crypto-lib-chacha20/aarch64
   KCONFIG+=CONFIG_CRYPTO_CHACHA20_NEON
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/chacha-neon.ko
+  FILES+=$(if $(K618),,$(LINUX_DIR)/arch/arm64/crypto/chacha-neon.ko)
 endef
 
 define KernelPackage/crypto-lib-chacha20/mips32r2
@@ -623,7 +627,7 @@ define KernelPackage/crypto-lib-curve25519
   HIDDEN:=1
   FILES:= \
 	$(LINUX_DIR)/lib/crypto/libcurve25519.ko \
-	$(LINUX_DIR)/lib/crypto/libcurve25519-generic.ko
+	$(if $(K618),,$(LINUX_DIR)/lib/crypto/libcurve25519-generic.ko)
   $(call AddDepends/crypto,+kmod-crypto-kpp)
 endef
 
@@ -676,7 +680,7 @@ KernelPackage/crypto-lib-poly1305/armeb=$(KernelPackage/crypto-lib-poly1305/arm)
 
 define KernelPackage/crypto-lib-poly1305/aarch64
   KCONFIG+=CONFIG_CRYPTO_POLY1305_NEON
-  FILES:=$(LINUX_DIR)/arch/arm64/crypto/poly1305-neon.ko
+  FILES:=$(if $(K618),$(LINUX_DIR)/lib/crypto/libpoly1305.ko,$(LINUX_DIR)/arch/arm64/crypto/poly1305-neon.ko)
 endef
 
 define KernelPackage/crypto-lib-poly1305/mips
@@ -967,8 +971,8 @@ define KernelPackage/crypto-sha1
 	CONFIG_CRYPTO_SHA1_OCTEON \
 	CONFIG_CRYPTO_SHA1_PPC_SPE \
 	CONFIG_CRYPTO_SHA1_SSSE3
-  FILES:=$(LINUX_DIR)/crypto/sha1_generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha1_generic)
+  FILES:=$(LINUX_DIR)/crypto/$(if $(K618),sha1,sha1_generic).ko
+  AUTOLOAD:=$(call AutoLoad,09,$(if $(K618),sha1,sha1_generic))
   $(call AddDepends/crypto)
 endef
 
@@ -984,8 +988,8 @@ define KernelPackage/crypto-sha1/arm-neon
 endef
 
 define KernelPackage/crypto-sha1/aarch64-ce
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/sha1-ce.ko
-  AUTOLOAD+=$(call AutoLoad,09,sha1-ce)
+  FILES+=$(if $(K618),,$(LINUX_DIR)/arch/arm64/crypto/sha1-ce.ko)
+  AUTOLOAD+=$(if $(K618),,$(call AutoLoad,09,sha1-ce))
 endef
 
 KernelPackage/crypto-sha1/imx/cortexa7=$(KernelPackage/crypto-sha1/arm-neon)
@@ -1056,14 +1060,14 @@ define KernelPackage/crypto-sha256
 endef
 
 define KernelPackage/crypto-sha256/aarch64
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/sha256-arm64.ko
-  AUTOLOAD+=$(call AutoLoad,09,sha256-arm64)
+  FILES+=$(if $(K618),,$(LINUX_DIR)/arch/arm64/crypto/sha256-arm64.ko)
+  AUTOLOAD+=$(if $(K618),,$(call AutoLoad,09,sha256-arm64))
 endef
 
 define KernelPackage/crypto-sha256/aarch64-ce
   $(call KernelPackage/crypto-sha256/aarch64)
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/sha2-ce.ko
-  AUTOLOAD+=$(call AutoLoad,09,sha2-ce)
+  FILES+=$(if $(K618),,$(LINUX_DIR)/arch/arm64/crypto/sha2-ce.ko)
+  AUTOLOAD+=$(if $(K618),,$(call AutoLoad,09,sha2-ce))
 endef
 
 define KernelPackage/crypto-sha256/octeon
@@ -1107,8 +1111,9 @@ define KernelPackage/crypto-sha512
 	CONFIG_CRYPTO_SHA512_ARM64 \
 	CONFIG_CRYPTO_SHA512_OCTEON \
 	CONFIG_CRYPTO_SHA512_SSSE3
-  FILES:=$(LINUX_DIR)/crypto/sha512_generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha512_generic)
+  FILES:=$(LINUX_DIR)/crypto/$(if $(K618),sha512,sha512_generic).ko \
+	$(if $(K618),$(LINUX_DIR)/lib/crypto/libsha512.ko)
+  AUTOLOAD:=$(call AutoLoad,09,$(if $(K618),sha512,sha512_generic))
   $(call AddDepends/crypto)
 endef
 
@@ -1118,8 +1123,8 @@ define KernelPackage/crypto-sha512/arm
 endef
 
 define KernelPackage/crypto-sha512/aarch64
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/sha512-arm64.ko
-  AUTOLOAD+=$(call AutoLoad,09,sha512-arm64)
+  FILES+=$(if $(K618),,$(LINUX_DIR)/arch/arm64/crypto/sha512-arm64.ko)
+  AUTOLOAD+=$(if $(K618),,$(call AutoLoad,09,sha512-arm64))
 endef
 
 KernelPackage/crypto-sha512/imx/cortexa7=$(KernelPackage/crypto-sha512/arm)

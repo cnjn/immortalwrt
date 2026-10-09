@@ -5,13 +5,17 @@
 # See /LICENSE for more information.
 #
 
+# Kernel 6.18 moved generic crypto and CRC code to lib/ and folded the arm64
+# NEON code into the libraries: some module files have new names or are gone.
+K618:=$(filter 6.18.%,$(LINUX_VERSION))
+
 LIB_MENU:=Libraries
 
 define KernelPackage/lib-crc-ccitt
   SUBMENU:=$(LIB_MENU)
   TITLE:=CRC-CCITT support
   KCONFIG:=CONFIG_CRC_CCITT
-  FILES:=$(LINUX_DIR)/lib/crc-ccitt.ko
+  FILES:=$(LINUX_DIR)/lib/$(if $(K618),crc/)crc-ccitt.ko
   AUTOLOAD:=$(call AutoProbe,crc-ccitt)
 endef
 
@@ -71,7 +75,7 @@ define KernelPackage/lib-crc16
   SUBMENU:=$(LIB_MENU)
   TITLE:=CRC16 support
   KCONFIG:=CONFIG_CRC16
-  FILES:=$(LINUX_DIR)/lib/crc16.ko
+  FILES:=$(LINUX_DIR)/lib/$(if $(K618),crc/)crc16.ko
   AUTOLOAD:=$(call AutoLoad,20,crc16,1)
 endef
 
