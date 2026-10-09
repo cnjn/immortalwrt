@@ -1,0 +1,13 @@
+# Body light: white while the WAN has working internet, red otherwise.
+config netled 'main'
+	option enabled '1'
+	# seconds between checks
+	option interval '5'
+	# checks in a row that must succeed / fail to change the light
+	option up_count '1'
+	option down_count '3'
+	# the WAN interfaces to check, and the hosts pinged through them
+	list iface 'wan'
+	list host '223.5.5.5'
+	list host '119.29.29.29'
+	list host '1.1.1.1'

@@ -1,0 +1,78 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Called by mount_root when the overlay was written for a different root
+# filesystem, for example after the firmware was replaced from the vendor web
+# interface. Stale files in the overlay would shadow the new root filesystem,
+# so keep only the settings that sysupgrade keeps, drop everything else, and
+# stage the settings as sysupgrade.tgz. Preinit restores that file on this
+# boot, exactly as it does after a sysupgrade.
+#
+# usage: zte-overlay-rescue <overlay directory, ending in /.owrt>
+#
+# Keep this out of /lib/upgrade and keep the name free of ".sh": sysupgrade
+# sources every /lib/upgrade/*.sh into its own shell, and this script exits.
+
+KEEP_D=${KEEP_D:-/lib/upgrade/keep.d}
+tmp=${TMPDIR:-/tmp}
+list=$tmp/zte-keep.list
+tgz=$tmp/zte-keep.tgz
+dir=$1
+
+case "$dir" in
+*/.owrt) ;;
+*)
+	echo "refusing to reset '$dir'" >&2
+	exit 1
+	;;
+esac
+[ -d "$dir" ] || exit 1
+
+# An earlier run stopped after staging the settings: finish its job.
+if [ -f "$dir/sysupgrade.tgz.tmp" ]; then
+	mv "$dir/sysupgrade.tgz.tmp" "$dir/sysupgrade.tgz"
+	exit 0
+fi
+
+upper=$dir/upper
+: > "$list"
+
+# The files sysupgrade would keep that exist in the overlay. Everything else
+# in the overlay is either unmodified or belongs to the old root filesystem.
+if [ -d "$upper" ]; then
+	{
+		sed -ne '/^[[:space:]]*$/d; /^#/d; p' "$KEEP_D"/* 2>/dev/null
+		sed -ne '/^[[:space:]]*$/d; /^#/d; p' "$upper/etc/sysupgrade.conf" 2>/dev/null
+		echo /etc/sysupgrade.conf
+	} | while read -r p; do
+		[ -e "$upper$p" ] || [ -L "$upper$p" ] && echo ".$p"
+	done > "$list"
+fi
+
+if [ -s "$list" ]; then
+	tar -C "$upper" -czf "$tgz" -T "$list" || {
+		rm -f "$tgz" "$list"
+		exit 1
+	}
+	# Stage the settings on the overlay's own volume before deleting anything.
+	cp "$tgz" "$dir/sysupgrade.tgz.tmp" || {
+		rm -f "$dir/sysupgrade.tgz.tmp" "$tgz" "$list"
+		exit 1
+	}
+	sync
+fi
+
+for e in "$dir"/* "$dir"/.[!.]*; do
+	[ -e "$e" ] || [ -L "$e" ] || continue
+	case "$e" in
+	*/sysupgrade.tgz.tmp) ;;
+	*) rm -rf "$e" ;;
+	esac
+done
+
+[ -f "$dir/sysupgrade.tgz.tmp" ] &&
+	mv "$dir/sysupgrade.tgz.tmp" "$dir/sysupgrade.tgz"
+
+rm -f "$tgz" "$list"
+sync
+exit 0

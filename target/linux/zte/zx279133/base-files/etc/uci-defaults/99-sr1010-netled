@@ -1,0 +1,3 @@
+#!/bin/sh
+/etc/init.d/sr1010-netled enable
+exit 0

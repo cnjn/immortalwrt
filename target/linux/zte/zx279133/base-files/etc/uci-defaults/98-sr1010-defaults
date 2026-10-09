@@ -1,0 +1,28 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# First-boot defaults for the ZTE SR1010. They are applied once per device: the
+# marker is kept in /etc/config/system, which sysupgrade preserves, so a later
+# firmware change does not undo choices made since.
+
+[ "$(uci -q get system.@system[0].sr1010_defaults)" = 1 ] && exit 0
+
+# Chinese interface, Beijing time, and the Argon theme.
+uci -q set system.@system[0].timezone='CST-8'
+uci -q set system.@system[0].zonename='Asia/Shanghai'
+uci -q set luci.main.lang='zh_cn'
+uci -q set luci.main.mediaurlbase='/luci-static/argon'
+
+# Hardware flow offloading. fw4 resolves the bridge ports behind br-lan, checks
+# that the kernel accepts a hardware flowtable on them and otherwise falls back
+# to software offloading by itself.
+uci -q set firewall.@defaults[0].flow_offloading='1'
+uci -q set firewall.@defaults[0].flow_offloading_hw='1'
+
+# The NIC has two hardware RX queues with their own IRQs, pinned to one CPU each
+# by the driver. Software packet steering on top of that is not wanted.
+uci -q set network.@globals[0].packet_steering='0'
+
+uci -q set system.@system[0].sr1010_defaults='1'
+uci -q commit
+exit 0
