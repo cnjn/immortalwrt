@@ -88,6 +88,11 @@ clean markers in the data and not in the OOB; see
 still cannot be mounted, the router starts with an overlay in RAM and says so in
 the log, instead of staying on the read-only root file system.
 
+The vendor firmware refuses a JFFS2 that holds extended attributes (its JFFS2 has
+neither those nor summary nodes), so this kernel builds JFFS2 with the same
+feature set. A `Plugin` partition written by an earlier build, which has such
+nodes, has to be erased once.
+
 The SPI flash controller runs at 50 MHz and the NAND is read with four data
 lines (commands, addresses and writes use one). Reading the 40 MiB `Plugin`
 partition takes about 3.9 s, and mounting its JFFS2 about a quarter of a second.
