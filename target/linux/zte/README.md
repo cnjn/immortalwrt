@@ -122,6 +122,16 @@ Every later call then fails with `version header crc failed`. The bootloader onl
 checks the CRC1, so the slot still boots when it is selected, but it is no
 longer selected. `zte-fwslot switch` erases the block and writes it whole.
 
+## USB disks and extroot
+
+USB storage mounts as usual (LuCI, System, Mount Points). extroot, which puts
+the overlay on a USB disk, also works with the shared overlay: the overlay on
+the disk is kept in its `.owrt` directory, like the internal one, so the
+documented way to set it up applies unchanged. Format the disk as ext4, copy the
+whole `/overlay` to it, and mount it with "Use as external overlay". The
+configuration is read from `/overlay/.owrt/upper/etc/config/fstab`. extroot
+has not been tried on a device.
+
 ## Defaults
 
 LAN `192.168.5.1`; Chinese interface with the Argon theme and Beijing time;
