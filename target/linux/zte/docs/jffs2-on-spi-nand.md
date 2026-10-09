@@ -69,6 +69,10 @@ ECC 错误。符合这个推断的事实：只被编程一次的页（空块上�
 
 - 每个块损失一页（2 KiB，占 128 KiB 的 1.6%）。
 - 不使用片上 ECC 的 NAND 行为不变。
+- 扫描（提交 `8aa6f4607`）：整页的清除标记比挂载时最先读的 1 KB 还长，扫描器读完标记就把这个块剩下的
+  126 KiB 全部读一遍，320 个块约 39 MiB，在当时 25 MHz 单线的速度下挂载要约 16 s（**推断**，由挂载耗时和读速度
+  算得）。现在块里除了清除标记什么都没有时，标记后面只多读 1 KB，按原来的规则认定整块干净；有数据的块走原来
+  的完整扫描。
 
 fstools（补丁 `203-overlay-ram-fallback.patch`）：overlay 卷挂不上时，`mount_overlay()` 回退到
 内存 overlay 并打印 `cannot mount the overlay volume, using a temporary overlay in RAM`，
@@ -81,6 +85,10 @@ fstools（补丁 `203-overlay-ram-fallback.patch`）：overlay 卷挂不上时�
 `/dev/mtdblock6`，LuCI 里保存的设置在重启后保留。
 
 没有做的：断电时的行为、长时间运行（垃圾回收、磨损）、改动之后回到原厂系统检查 Plugin。
+
+**实测**（加上扫描改动之后，SFC 50 MHz 四线读）：挂载 Plugin 分区从日志里
+`NAND pages can be programmed once` 到 `complete building xattr subsystem` 只用 0.24 s（原来约 16 s），
+刷入新镜像后带着上一个镜像留下的真实数据也能正确挂载，"根文件系统变了、只保留设置"的救援路径走通。
 
 ## 5. 与原厂系统共用 Plugin
 
@@ -106,3 +114,15 @@ fstools（补丁 `203-overlay-ram-fallback.patch`）：overlay 卷挂不上时�
   ```
 
   只擦单个块（Plugin 内偏移加 `0x5800000`）只适合已经定位的坏块，例如 `nand erase 73e0000 20000`。
+
+## 7. 日志里的 summary 警告
+
+挂载之后偶尔会有一行：
+
+```text
+jffs2: warning: jffs2_sum_write_data: Not enough space for summary, padsize = -999
+```
+
+**读码**：JFFS2 关闭一个块时，把当前没写满的一页用填充补满，补出来的空间占掉了为摘要节点预留的位置，
+摘要放不下，就不给这个块写摘要。结果只是下次挂载时这一个块要完整扫描，数据不受影响。据我所知这是 JFFS2 在
+NAND 上本来就有的行为；我没有证明它与整页清除标记完全无关。

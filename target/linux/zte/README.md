@@ -88,6 +88,12 @@ clean markers in the data and not in the OOB; see
 still cannot be mounted, the router starts with an overlay in RAM and says so in
 the log, instead of staying on the read-only root file system.
 
+The SPI flash controller runs at 50 MHz and the NAND is read with four data
+lines (commands, addresses and writes use one). Reading the 40 MiB `Plugin`
+partition takes about 3.9 s, and mounting its JFFS2 about a quarter of a second.
+The controller is read by the CPU, which limits reads to roughly 16 MB/s; DMA is
+not done. See [docs/spi-nand-speed.md](docs/spi-nand-speed.md).
+
 The vendor configuration partition stays read-only.
 
 ## Installing and switching
@@ -198,7 +204,9 @@ some 25000 PAUSE frames per five seconds; with it off the same test reached
 Tried on a device: booting from a slot with the patched U-Boot, the network
 ports and the LuCI interface of earlier builds; installing from the vendor web
 interface; `zte-fwslot switch` from the command line to the vendor system; the
-overlay in the Plugin partition, whose settings survive a reboot.
+overlay in the Plugin partition, whose settings survive a reboot; the SPI flash
+controller at 50 MHz with four-line reads, read back and compared with the
+contents of the images.
 Not tried yet, because they were added later or need the other system: the
 Firmware Slots page in LuCI, the reset button, the lights (the status light
 following the WAN, the socket lights), extroot, the rescue of the overlay's
