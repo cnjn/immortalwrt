@@ -513,10 +513,18 @@ static int gpio_keys_button_probe(struct platform_device *pdev,
 							    GPIOD_IN);
 			if (IS_ERR(bdata->gpiod)) {
 				/* or the legacy (button->gpio is good) way? */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
+				/* GPIOF_ACTIVE_LOW is gone: set the polarity afterwards. */
+				error = devm_gpio_request_one(dev, button->gpio,
+							      GPIOF_IN, desc);
+				if (!error && button->active_low)
+					gpiod_toggle_active_low(gpio_to_desc(button->gpio));
+#else
 				error = devm_gpio_request_one(dev,
 					button->gpio, GPIOF_IN | (
 					button->active_low ? GPIOF_ACTIVE_LOW :
 					0), desc);
+#endif
 				if (error) {
 					dev_err_probe(dev, error,
 						      "unable to claim gpio %d",
@@ -679,9 +687,15 @@ static void gpio_keys_remove(struct platform_device *pdev)
 		gpio_keys_irq_close(bdev);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
+#define BH_REMOVE	remove
+#else
+#define BH_REMOVE	remove_new
+#endif
+
 static struct platform_driver gpio_keys_driver = {
 	.probe	= gpio_keys_probe,
-	.remove_new = gpio_keys_remove,
+	.BH_REMOVE = gpio_keys_remove,
 	.driver	= {
 		.name	= "gpio-keys",
 		.of_match_table = of_match_ptr(gpio_keys_of_match),
@@ -690,7 +704,7 @@ static struct platform_driver gpio_keys_driver = {
 
 static struct platform_driver gpio_keys_polled_driver = {
 	.probe	= gpio_keys_polled_probe,
-	.remove_new = gpio_keys_remove,
+	.BH_REMOVE = gpio_keys_remove,
 	.driver	= {
 		.name	= "gpio-keys-polled",
 		.of_match_table = of_match_ptr(gpio_keys_polled_of_match),
