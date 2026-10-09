@@ -138,6 +138,11 @@ LAN `192.168.5.1`; Chinese interface with the Argon theme and Beijing time;
 IPv6; hardware flow offloading (falls back to software by itself); the two
 hardware RX queues are used as they are, without software packet steering.
 
+LAN and WAN use the same MAC address, as the factory firmware does. The hardware
+NAT writes one source MAC, the WAN address, into every routed frame, so with a
+separate LAN address the driver refuses all WAN-to-LAN flows and downloads stay
+on the CPU (the first refusal is logged: `dmesg | grep "flow offload refused"`).
+
 The status light is white while the WAN has working internet and red
 otherwise (`sr1010-netled`, `/etc/config/sr1010-netled`). The five lights beside
 the sockets follow the links of their ports.
