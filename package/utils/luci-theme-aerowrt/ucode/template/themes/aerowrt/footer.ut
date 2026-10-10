@@ -1,0 +1,10 @@
+			</main>
+			<footer class="awrt-footer">
+				<span class="awrt-footer-brand">AeroWRT</span>
+				<span class="awrt-footer-note">{{ _('Powered by OpenWrt and LuCI') }}{% if (version?.luciversion): %} · {{ version.luciversion }}{% endif %}</span>
+			</footer>
+		</div>
+	</div>
+	<div class="awrt-scrim" id="awrt-scrim" hidden></div>
+</body>
+</html>

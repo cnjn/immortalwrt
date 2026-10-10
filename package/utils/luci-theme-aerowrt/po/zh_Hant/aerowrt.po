@@ -1,0 +1,47 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-theme-aerowrt 1.0.0\n"
+"PO-Revision-Date: 2026-08-02 00:00+0800\n"
+"Last-Translator: AeroWRT contributors\n"
+"Language-Team: Traditional Chinese\n"
+"Language: zh_Hant\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: luasrc/view/themes/aerowrt/header.htm ucode/template/themes/aerowrt/header.ut
+msgid "Skip to content"
+msgstr "跳至內容"
+
+#: luasrc/view/themes/aerowrt/header.htm ucode/template/themes/aerowrt/header.ut
+msgid "Main navigation"
+msgstr "主導覽"
+
+#: ucode/template/themes/aerowrt/header.ut
+msgid "Router sections"
+msgstr "路由器區段"
+
+#: luasrc/view/themes/aerowrt/header.htm ucode/template/themes/aerowrt/header.ut
+msgid "Toggle navigation"
+msgstr "切換導覽"
+
+#: luasrc/view/themes/aerowrt/header.htm ucode/template/themes/aerowrt/header.ut
+msgid "Logout"
+msgstr "登出"
+
+#: luasrc/view/themes/aerowrt/header.htm ucode/template/themes/aerowrt/header.ut
+msgid "This interface requires JavaScript."
+msgstr "此介面需要 JavaScript。"
+
+#: ucode/template/themes/aerowrt/header.ut
+msgid "System running in recovery (initramfs) mode."
+msgstr "系統目前以復原（initramfs）模式執行。"
+
+#: ucode/template/themes/aerowrt/header.ut
+msgid "JavaScript required!"
+msgstr "需要 JavaScript！"
+
+#: luasrc/view/themes/aerowrt/footer.htm ucode/template/themes/aerowrt/footer.ut
+msgid "Powered by OpenWrt and LuCI"
+msgstr "由 OpenWrt 與 LuCI 提供支援"

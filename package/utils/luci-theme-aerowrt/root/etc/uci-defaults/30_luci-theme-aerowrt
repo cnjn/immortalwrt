@@ -1,0 +1,11 @@
+#!/bin/sh
+# Register the AeroWRT theme with LuCI so it can be picked under
+# System -> System -> Language and Style. Unlike upstream this does NOT make it
+# the active theme: the image keeps Argon as its default (see VENDORED.md).
+# /etc/uci-defaults entries are removed by the system after they exit 0.
+
+uci -q get luci.themes.AeroWRT >/dev/null || \
+	uci set luci.themes.AeroWRT=/luci-static/aerowrt
+
+uci commit luci
+exit 0

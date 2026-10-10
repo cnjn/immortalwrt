@@ -1,0 +1,97 @@
+/*
+ * AeroWRT theme for LuCI - responsive / mobile stylesheet
+ *
+ * Copyright 2026 AeroWRT contributors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Loaded after cascade.css. Handles the collapsible off-canvas sidebar,
+ * stacked forms, scrollable tables, and touch-friendly sizing.
+ */
+
+/* Tablet and below: sidebar becomes an off-canvas drawer */
+@media (max-width: 992px) {
+	.awrt-menu-toggle { display: inline-flex; }
+
+	.awrt-sidebar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		height: 100%;
+		transform: translateX(-105%);
+		transition: transform var(--awrt-speed) var(--awrt-ease);
+		box-shadow: var(--awrt-shadow-lg);
+	}
+
+	.awrt-app.awrt-nav-open .awrt-sidebar { transform: translateX(0); }
+
+	.awrt-content { padding: 16px 16px 32px; }
+
+	.awrt-topbar { padding: 0 12px; }
+}
+
+/* Phone: stack forms, full-width controls, scroll wide tables */
+@media (max-width: 640px) {
+	body.awrt { font-size: 15px; }
+
+	.awrt-content { padding: 12px 12px 28px; }
+
+	.cbi-map, .cbi-section, .awrt-card { padding: 14px 14px; border-radius: var(--awrt-radius); }
+
+	/* Stack label above field */
+	.cbi-value { display: block; padding: 10px 0; }
+
+	.cbi-value-title {
+		display: block;
+		max-width: none;
+		text-align: left;
+		padding: 0 0 6px;
+	}
+
+	.cbi-value-field { max-width: none; padding-top: 0; }
+	.cbi-value-description { padding-left: 0; }
+
+	input[type="text"], input[type="password"], input[type="number"],
+	input[type="email"], input[type="search"], input[type="url"], input[type="tel"],
+	textarea, select, .cbi-dropdown, .cbi-dynlist,
+	.cbi-input-text, .cbi-input-password, .cbi-input-select {
+		max-width: none;
+		width: 100%;
+	}
+
+	/* Touch targets */
+	.btn, .cbi-button, button.cbi-button {
+		min-height: var(--awrt-touch);
+		width: auto;
+	}
+
+	.cbi-page-actions, .cbi-section-actions { gap: 8px; }
+	.cbi-page-actions .cbi-button, .cbi-section-actions .cbi-button { flex: 1 1 auto; }
+
+	.awrt-topbar-crumb { display: none; }
+
+	/* Make wide tables scroll horizontally instead of breaking layout */
+	.table, .cbi-section-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+	.ifacebox { min-width: 100px; }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+	.awrt-brand-text { font-size: 1rem; }
+	.awrt-sidebar { width: 82vw; flex-basis: 82vw; }
+}
+
+/* Large screens: widen the content column a touch */
+@media (min-width: 1400px) {
+	.awrt-content { max-width: 1320px; }
+}
+
+/* Honor users who prefer more contrast for touch/keyboard affordances */
+@media (prefers-contrast: more) {
+	:root {
+		--awrt-border: #9aa7b5;
+		--awrt-card-border: #9aa7b5;
+		--awrt-text-muted: #3c4a59;
+	}
+}

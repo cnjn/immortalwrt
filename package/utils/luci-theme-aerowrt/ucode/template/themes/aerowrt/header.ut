@@ -1,0 +1,68 @@
+{# AeroWRT ucode template for LuCI 23.05+ #}
+{%
+	const boardinfo = ubus.call('system', 'board');
+	const hostname = striptags(boardinfo?.hostname ?? 'OpenWrt');
+	const page_title = striptags(`${hostname}${node?.title ? ` - ${node.title}` : ''}`);
+	http.prepare_content('text/html; charset=UTF-8');
+-%}
+<!DOCTYPE html>
+<html lang="{{ dispatcher.lang }}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="color-scheme" content="light dark">
+	<meta name="theme-color" content="#15243b">
+	<title>{{ page_title }} - AeroWRT</title>
+	<link rel="stylesheet" href="{{ resource }}/cbi.css">
+	<link rel="stylesheet" href="{{ media }}/cascade.css">
+	<link rel="stylesheet" href="{{ media }}/mobile.css">
+	<link rel="stylesheet" href="{{ media }}/network-map.css">
+	<link rel="icon" href="{{ media }}/favicon.svg" type="image/svg+xml">
+	{% if (node?.css): %}<link rel="stylesheet" href="{{ resource }}/{{ node.css }}">{% endif %}
+	{% if (css): %}<style title="text/css">{{ css }}</style>{% endif %}
+	<script src="{{ dispatcher.build_url('admin/translations', dispatcher.lang) }}"></script>
+	<script src="{{ resource }}/cbi.js"></script>
+	<script src="{{ media }}/menu-aerowrt.js" defer></script>
+	<script src="{{ media }}/theme.js" defer></script>
+</head>
+<body class="awrt lang_{{ dispatcher.lang }} {{ blank_page ? 'awrt-login' : '' }}" data-page="{{ entityencode(join('-', ctx.path), true) }}" data-hostname="{{ entityencode(hostname, true) }}">
+	<a class="awrt-skip-link" href="#maincontent">{{ _('Skip to content') }}</a>
+	<div class="awrt-app">
+		<aside class="awrt-sidebar" id="awrt-sidebar" aria-label="{{ _('Main navigation') }}">
+			<div class="awrt-brand">
+				<span class="awrt-brand-mark" aria-hidden="true">
+					<svg viewBox="0 0 32 32" width="28" height="28" role="img" focusable="false">
+						<path d="M16 3 3 9v9c0 7.2 5.5 11.6 13 13 7.5-1.4 13-5.8 13-13V9L16 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+						<path d="M9 17c2.2-3.4 4.6-5.1 7-5.1S20.8 13.6 23 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+						<circle cx="16" cy="20" r="2.2" fill="currentColor"/>
+					</svg>
+				</span>
+				<span class="awrt-brand-text">AeroWRT</span>
+			</div>
+			<nav class="awrt-nav" id="awrt-nav" aria-label="{{ _('Router sections') }}">
+				<ul class="awrt-nav-list" id="awrt-mainmenu"></ul>
+			</nav>
+			<div class="awrt-sidebar-footer"><span class="awrt-hostmodel">{{ entityencode(boardinfo?.model ?? 'OpenWrt', true) }}</span></div>
+		</aside>
+
+		<div class="awrt-main">
+			<header class="awrt-topbar">
+				<button class="awrt-menu-toggle" id="awrt-menu-toggle" type="button" aria-label="{{ _('Toggle navigation') }}" aria-controls="awrt-sidebar" aria-expanded="false">
+					<span class="awrt-menu-toggle-bar" aria-hidden="true"></span>
+				</button>
+				<div class="awrt-topbar-title">
+					<span class="awrt-topbar-host">{{ entityencode(hostname, true) }}</span>
+					{% if (node?.title): %}<span class="awrt-topbar-crumb">{{ striptags(node.title) }}</span>{% endif %}
+				</div>
+				<div class="awrt-topbar-actions">
+					<div id="indicators"></div>
+					{% if (ctx.authsession && !blank_page): %}<a class="awrt-topbar-link" href="{{ dispatcher.build_url('admin/logout') }}">{{ _('Logout') }}</a>{% endif %}
+				</div>
+			</header>
+
+			<main class="awrt-content" id="maincontent">
+				{% if (!blank_page && boardinfo?.rootfs_type == 'initramfs'): %}
+				<div class="awrt-alert awrt-alert-warning"><strong>{{ _('System running in recovery (initramfs) mode.') }}</strong></div>
+				{% endif %}
+				<noscript><div class="awrt-alert awrt-alert-warning">{{ _('JavaScript required!') }}</div></noscript>
+				<div id="tabmenu" style="display:none"></div>
