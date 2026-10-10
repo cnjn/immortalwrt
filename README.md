@@ -14,8 +14,9 @@
 - SoC：ZTE ZX279133
 - 设备：ZTE/ZXSLC SR1010
 - 外部内核：Linux 6.18.38
-- Web 管理：完整 LuCI，简体中文，Argon 主题
-- 网络：IPv6、硬件流量卸载、WireGuard、Tailscale、ZeroTier、dae
+- Web 管理：完整 LuCI，简体中文，默认 Argon 主题，另带可选的 AeroWRT（华硕风格）主题
+- 网络：IPv6、硬件流量卸载、WireGuard、ZeroTier、dae 2.1.1
+- 存储共享：USB 盘通过 ksmbd（SMB）共享，`wsdd2` 让 Windows 的“网络”里能看到路由器
 - 覆盖层放在 `Plugin` 分区的 `.owrt` 子目录，与原厂文件共存，恢复出厂不会删除原厂文件
 - 另提供只在内存中运行的 FIT initramfs 镜像，用于调试
 
@@ -130,7 +131,7 @@ immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade-stock-uboot.
 - 板子接收（多条 TCP 流）：2.5G 的 LAN 口约 2.2G，已是 TCP 在 2.5G 上上限的 94%，两个接收队列都在工作（WAN 口记录为 2.35G）。
 - 硬件流量卸载接管的路由/NAT 流量不经过 CPU（内核仓库记录约 2.3G）。
 - 路由器自己发出的 TCP：单流约 1.4G，四流约 1.9G，两个核都满。驱动没有 SG 和 TSO，这部分被 CPU 拷贝和分段；
-  不能硬件卸载的流量（dae、Tailscale、代理）走这条路径。
+  不能硬件卸载的流量（dae、代理）走这条路径。
 - LAN 口和交换芯片的 CPU 口不通告暂停，与 WAN 口一致。协商了暂停时上传只有约 0.95G，关掉后 2.22G；`ethtool -A` 不能再打开。
 
 ## 内存启动（initramfs）

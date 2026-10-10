@@ -64,7 +64,7 @@ A slot is 41 MiB. The U-Boot, the kernel, the version header and spare blocks
 for bad blocks take part of it; the rest is left for the root filesystem, and
 the packer stops with an error when the image does not fit. Every package added
 to the configuration has to be paid for out of that room. The squashfs uses
-1 MiB blocks, which compress the large Go binaries (Tailscale, dae) better.
+1 MiB blocks, which compress the large Go binaries (dae) better.
 
 ## Flash layout
 
@@ -202,7 +202,7 @@ repository is named:
   for four, with both cores busy. The driver has no scatter-gather and no TSO,
   and the hardware gather and the TSO template are not usable yet, so the CPU
   copies and segments every packet. Traffic that cannot be offloaded (dae,
-  Tailscale, proxies) takes this path. The kernel repository records 1.75 to
+  proxies) takes this path. The kernel repository records 1.75 to
   1.94 Gbit/s for this direction on earlier builds.
 
 The LAN ports and the CPU port of the switch do not advertise pause, as the WAN
