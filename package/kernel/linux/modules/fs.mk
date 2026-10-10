@@ -7,6 +7,10 @@
 
 FS_MENU:=Filesystems
 
+# Kernel 6.18: netfs is always built in (no netfs.ko), and cifs_arc4.ko is gone, the
+# SMB client and server use lib/crypto/libarc4.ko (kmod-crypto-arc4) instead.
+K618:=$(filter 6.18.%,$(LINUX_VERSION))
+
 define KernelPackage/fs-9p
   SUBMENU:=$(FS_MENU)
   TITLE:=Plan 9 Resource Sharing Support
@@ -103,11 +107,11 @@ define KernelPackage/fs-smbfs-common
   SUBMENU:=$(FS_MENU)
   TITLE:=SMBFS common dependencies support
   HIDDEN:=1
-  DEPENDS:=+kmod-fs-netfs +kmod-nls-ucs2-utils
+  DEPENDS:=+kmod-fs-netfs +kmod-nls-ucs2-utils $(if $(K618),+kmod-crypto-arc4)
   KCONFIG:=\
 	CONFIG_SMBFS
   FILES:= \
-	$(LINUX_DIR)/fs/smb/common/cifs_arc4.ko \
+	$(if $(K618),,$(LINUX_DIR)/fs/smb/common/cifs_arc4.ko) \
 	$(LINUX_DIR)/fs/smb/common/cifs_md4.ko
 endef
 
@@ -418,8 +422,8 @@ define KernelPackage/fs-netfs
 	CONFIG_NETFS_SUPPORT \
 	CONFIG_FSCACHE=y \
 	CONFIG_FSCACHE_STATS=y
-  FILES:=$(LINUX_DIR)/fs/netfs/netfs.ko
-  AUTOLOAD:=$(call AutoLoad,28,netfs)
+  FILES:=$(if $(K618),,$(LINUX_DIR)/fs/netfs/netfs.ko)
+  AUTOLOAD:=$(if $(K618),,$(call AutoLoad,28,netfs))
 endef
 
 $(eval $(call KernelPackage,fs-netfs))

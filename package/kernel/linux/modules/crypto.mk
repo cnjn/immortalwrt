@@ -733,7 +733,8 @@ define KernelPackage/crypto-md5
 	CONFIG_CRYPTO_MD5 \
 	CONFIG_CRYPTO_MD5_OCTEON \
 	CONFIG_CRYPTO_MD5_PPC
-  FILES:=$(LINUX_DIR)/crypto/md5.ko
+  FILES:=$(LINUX_DIR)/crypto/md5.ko \
+	$(if $(K618),$(LINUX_DIR)/lib/crypto/libmd5.ko)
   AUTOLOAD:=$(call AutoLoad,09,md5)
   $(call AddDepends/crypto)
 endef
@@ -1053,9 +1054,9 @@ define KernelPackage/crypto-sha256
 	CONFIG_CRYPTO_SHA2_ARM64_CE \
 	CONFIG_CRYPTO_SHA256_SSSE3
   FILES:= \
-	$(LINUX_DIR)/crypto/sha256_generic.ko \
-	$(LINUX_DIR)/lib/crypto/libsha256.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha256_generic)
+	$(LINUX_DIR)/crypto/$(if $(K618),sha256,sha256_generic).ko \
+	$(if $(K618),,$(LINUX_DIR)/lib/crypto/libsha256.ko)
+  AUTOLOAD:=$(call AutoLoad,09,$(if $(K618),sha256,sha256_generic))
   $(call AddDepends/crypto)
 endef
 
