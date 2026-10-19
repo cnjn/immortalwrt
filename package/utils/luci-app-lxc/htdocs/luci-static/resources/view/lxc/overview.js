@@ -516,13 +516,15 @@ return L.view.extend({
 
 		this.populateOptions(s);
 
+		/*
+		 * Return the page instead of appending it to #tabmenu: themes may
+		 * hide that element (Argon does), which left the page empty. The
+		 * image panel looks its elements up by id, so it starts once the
+		 * view is in the document.
+		 */
 		return m.render().then(node => {
-			document.getElementById('tabmenu').append(node);
-			document.getElementById('tabmenu').append(lxc_list);
-			document.getElementById('tabmenu').append(lxc_output);
-			document.getElementById('tabmenu').append(create_new);
-			document.getElementById('tabmenu').append(create_output);
-			this.imagepanel();
+			window.setTimeout(() => this.imagepanel(), 0);
+			return E([], [ node, lxc_list, lxc_output, create_new, create_output ]);
 		});
 	},
 });

@@ -21,5 +21,7 @@ The package shadows the feed one: run `./scripts/feeds uninstall luci-app-lxc` o
   created on the overlay.
 - `80_luci-lxc-path` (uci-defaults): fills the option from the current `lxc.conf` and reloads
   ucitrack.
+- The page was appended to `#tabmenu`, which the Argon theme hides (`display:none`), so
+  the whole page (container list, settings) was empty there. `render()` now returns it.
 - Makefile: includes `$(TOPDIR)/feeds/luci/luci.mk`.
 - zh_Hans translations for the new strings.
