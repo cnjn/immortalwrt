@@ -16,6 +16,8 @@
 - 外部内核：Linux 6.18.38
 - Web 管理：完整 LuCI，简体中文，默认 Argon 主题，另带可选的 AeroWRT（华硕风格）主题
 - 网络：IPv6、硬件流量卸载、WireGuard、ZeroTier、dae 2.1.1
+- 多 WAN：mwan3 负载均衡与故障切换，`luci-app-syncdial` 单线多拨（默认都不生效，配置后才起作用）
+- 组播：omcproxy（IGMPv3/MLDv2，IPv4 和 IPv6），mcfast 用 eBPF 在入口直接转发已路由的组播流（PPPoE 下约 700 Mbit/s）
 - 存储共享：USB 盘通过 ksmbd（SMB）共享，`wsdd2` 让 Windows 的“网络”里能看到路由器
 - Mesh：内置 ZTE mesh 控制器（zte-mesh），中兴 mesh 子路由可以通过有线回程加入；默认关闭，在 LuCI 里填好 Wi-Fi 后启用
 - 容器：LXC（含 LuCI 管理页，开机自启 `lxc-auto`）；容器根文件系统放 USB 盘

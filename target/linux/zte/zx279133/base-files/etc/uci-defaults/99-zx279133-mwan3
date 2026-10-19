@@ -1,0 +1,10 @@
+#!/bin/sh
+# mwan3 ships with its "wan" entry enabled and tracked by pinging public
+# resolvers; if they do not answer, its default policy makes the Internet
+# unreachable. Switch the entry off as long as the configuration is the
+# untouched default, so mwan3 only acts once it has been configured.
+[ -f /etc/config/mwan3 ] && [ -f /rom/etc/config/mwan3 ] || exit 0
+cmp -s /etc/config/mwan3 /rom/etc/config/mwan3 || exit 0
+uci -q set mwan3.wan.enabled=0
+uci -q commit mwan3
+exit 0
