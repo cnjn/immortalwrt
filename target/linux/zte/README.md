@@ -174,6 +174,11 @@ the sockets follow the links of their ports.
 The reset button is handled by `gpio-button-hotplug`: a short press reboots, and
 holding it for five seconds restores the factory settings.
 
+The ZTE mesh controller (`zte-mesh`, from the `zte_mesh` feed) is on. It hands
+the child routers the Wi-Fi name `ImmortalWrt` and the password `00000000`;
+change them in LuCI (Network, ZTE Mesh). Child routers join over a wired
+backhaul.
+
 ## Tests
 
 `package/utils/zte-fwslot/test/run.sh` runs the unmodified `zte-fwslot` against
@@ -196,8 +201,11 @@ repository is named:
 * Receiving, several TCP flows from a host to the router: about 2.2 Gbit/s on
   a 2.5G LAN port, 94% of what TCP can carry on 2.5G, with both RX queues in
   use. The kernel repository records 2.35 Gbit/s on the WAN port.
-* Routed and NAT traffic that the hardware flow offload takes does not use the
-  CPU; the kernel repository records about 2.3 Gbit/s.
+* Routed and NAT traffic that the hardware flow offload takes (IPoE, PPPoE,
+  macvlan dial sessions, a LAN port used as a second WAN) hardly uses the CPU:
+  2.35 Gbit/s up and 1.93 Gbit/s down on the main WAN, one direction at a time
+  (the download is limited by the test host's USB adapter), 2335/1880 Mbit/s
+  both ways at once.
 * TCP that the router sends itself: about 1.4 Gbit/s for one flow and 1.9 Gbit/s
   for four, with both cores busy. The driver has no scatter-gather and no TSO,
   and the hardware gather and the TSO template are not usable yet, so the CPU
@@ -205,10 +213,12 @@ repository is named:
   proxies) takes this path. The kernel repository records 1.75 to
   1.94 Gbit/s for this direction on earlier builds.
 
-The LAN ports and the CPU port of the switch do not advertise pause, as the WAN
-MAC does. With pause negotiated, an upload settled at about 0.95 Gbit/s with
-some 25000 PAUSE frames per five seconds; with it off the same test reached
-2.22 Gbit/s. `ethtool -A` cannot turn it on again.
+The LAN ports of the switch negotiate pause, as on the factory firmware. With
+the network processor at the factory 416 MHz, an eight-flow upload holds
+2.35 Gbit/s and the switch sends no PAUSE frames; a single download honours the
+PAUSE frames of the receiving host (1.93 Gbit/s measured, 1.89 on the factory
+firmware). Without pause, the download would reach 2.35 Gbit/s on its own but
+falls to about 0.16 Gbit/s while a PPPoE upload runs at the same time.
 
 ## Status
 
@@ -217,13 +227,13 @@ ports and the LuCI interface of earlier builds; installing from the vendor web
 interface; `zte-fwslot switch` from the command line to the vendor system; the
 overlay in the Plugin partition, whose settings survive a reboot; the SPI flash
 controller at 50 MHz with four-line reads, read back and compared with the
-contents of the images.
+contents of the images; hardware flow offloading, including PPPoE and macvlan
+dial sessions.
 Not tried yet, because they were added later or need the other system: the
 Firmware Slots page in LuCI, the reset button, the lights (the status light
 following the WAN, the socket lights), extroot, the rescue of the overlay's
-settings after the firmware was replaced from the vendor web interface, the
-vendor firmware reading a Plugin partition written by this one, and hardware
-flow offloading.
+settings after the firmware was replaced from the vendor web interface, and the
+vendor firmware reading a Plugin partition written by this one.
 
 The tests above cover `zte-fwslot` against simulated flash, and the slot
 headers the vendor flasher wrote in a flash dump pass its checks.
