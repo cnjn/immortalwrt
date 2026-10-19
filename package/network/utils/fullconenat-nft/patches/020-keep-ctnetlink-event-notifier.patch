@@ -1,0 +1,50 @@
+From: cnjn
+Subject: [PATCH] fullconenat-nft: do not take the conntrack event slot from ctnetlink
+
+Since Linux 5.15 a network namespace has one conntrack event notifier.
+The module marked itself registered even when ctnetlink already held the
+slot, and unregistered the slot whatever it held once its last rule went
+away (the firewall reloads several times while the router boots). ctnetlink
+then lost its notifier for good and no conntrack events reached userspace:
+conntrack -E stayed silent and nlbwmon, which only inserts hosts on NEW
+events, recorded nothing. Register only into a free slot, unregister only
+our own notifier, and say at info level that ctnetlink holds the slot.
+
+---
+--- a/src/nft_ext_fullcone.c	2026-10-19 06:47:25.420828673 -0400
++++ b/src/nft_ext_fullcone.c	2026-10-19 06:53:21.322962399 -0400
+@@ -162,14 +162,20 @@
+ #endif
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) && !defined(CONFIG_NF_CONNTRACK_CHAIN_EVENTS)
+-		if (!READ_ONCE(ctx->net->ct.nf_conntrack_event_cb)) {
++		/* The event slot is shared with ctnetlink (conntrack -E, nlbwmon):
++		 * take it only when it is free, and remember whether we did.
++		 */
++		if (!rcu_access_pointer(ctx->net->ct.nf_conntrack_event_cb))
+ 			nf_conntrack_register_notifier(ctx->net, &ct_event_notifier);
+-		}
++		else
++			register_ct_notifier_ret = -EBUSY;
+ #else
+ 		register_ct_notifier_ret = nf_conntrack_register_notifier(ctx->net, &ct_event_notifier);
+ #endif
+ 
+-		if (register_ct_notifier_ret) {
++		if (register_ct_notifier_ret == -EBUSY) {
++			pr_info("conntrack events go to ctnetlink; mappings expire without active GC.\n");
++		} else if (register_ct_notifier_ret) {
+ 			/* non-zero means failure */
+ 			pr_warn("failed to register a conntrack notifier. Disable active GC for mappings.\n");
+ 		} else {
+@@ -254,7 +260,9 @@
+ 	if (module_refer_count == 0) {
+ 		if (ct_event_notifier_registered) {
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) && !defined(CONFIG_NF_CONNTRACK_CHAIN_EVENTS)
+-			nf_conntrack_unregister_notifier(ctx->net);
++			/* ctnetlink may have taken the slot since: leave it alone */
++			if (rcu_access_pointer(ctx->net->ct.nf_conntrack_event_cb) == &ct_event_notifier)
++				nf_conntrack_unregister_notifier(ctx->net);
+ #else
+ 			nf_conntrack_unregister_notifier(ctx->net, &ct_event_notifier);
+ #endif
