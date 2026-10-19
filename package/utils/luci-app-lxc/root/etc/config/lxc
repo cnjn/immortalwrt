@@ -1,0 +1,4 @@
+
+config lxc 'lxc'
+	option url 'images.linuxcontainers.org'
+	option lxcpath '/srv/lxc'

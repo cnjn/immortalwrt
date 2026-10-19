@@ -1,0 +1,10 @@
+#!/bin/sh
+# Show the container path in use (lxc.conf) in /etc/config/lxc, and let
+# procd pick up the ucitrack handler that writes it back.
+if ! uci -q get lxc.lxc.lxcpath >/dev/null; then
+	path=$(sed -n 's/^[[:space:]]*lxc\.lxcpath[[:space:]]*=[[:space:]]*//p' /etc/lxc/lxc.conf 2>/dev/null)
+	uci -q set lxc.lxc.lxcpath="${path:-/srv/lxc}"
+	uci -q commit lxc
+fi
+[ -x /etc/init.d/ucitrack ] && /etc/init.d/ucitrack reload
+exit 0

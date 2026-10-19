@@ -1,0 +1,53 @@
+#!/bin/sh
+# Copy the container path of /etc/config/lxc (lxc.lxc.lxcpath) into
+# /etc/lxc/lxc.conf, which lxc-create, lxc-start, rpcd-mod-lxc and the LuCI
+# page all read. Run by procd (ucitrack) when the lxc configuration is applied.
+
+CONF=/etc/lxc/lxc.conf
+
+log() { logger -t luci-lxc-path "$*"; }
+
+# fstype PATH: file system type of the mount holding PATH or its nearest
+# existing parent directory.
+fstype() {
+	local p=$1 best= type= dev mnt t rest
+
+	while [ ! -d "$p" ]; do
+		p=${p%/*}
+		[ -n "$p" ] || p=/
+	done
+	p=$(cd "$p" && pwd -P)
+	while read -r dev mnt t rest; do
+		case "$p/" in
+		"${mnt%/}/"*)
+			[ ${#mnt} -ge ${#best} ] && { best=$mnt; type=$t; } ;;
+		esac
+	done < /proc/mounts
+	echo "$type"
+}
+
+path=$(uci -q get lxc.lxc.lxcpath)
+[ -n "$path" ] || exit 0
+
+case "$path" in
+/*) ;;
+*) log "lxcpath '$path' is not an absolute path; $CONF unchanged"; exit 1 ;;
+esac
+case "$path" in
+*[!A-Za-z0-9._/-]*|*/../*|*/..)
+	log "lxcpath '$path' may only use letters, digits and . _ - /; $CONF unchanged"; exit 1 ;;
+esac
+
+t=$(fstype "$path")
+case "$t" in
+vfat|msdos|exfat|ntfs|ntfs3|fuseblk|iso9660|squashfs)
+	log "$path is on $t, which cannot hold containers (no Unix permissions, or read-only); $CONF unchanged"; exit 1 ;;
+esac
+
+mkdir -p "$path" || { log "cannot create $path; $CONF unchanged"; exit 1; }
+if grep -q '^[[:space:]]*lxc\.lxcpath' "$CONF" 2>/dev/null; then
+	sed -i "s|^[[:space:]]*lxc\.lxcpath.*|lxc.lxcpath = $path|" "$CONF"
+else
+	echo "lxc.lxcpath = $path" >> "$CONF"
+fi
+log "containers are kept in $path ($t)"

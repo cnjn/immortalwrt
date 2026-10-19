@@ -1,0 +1,4 @@
+{
+	"config": "lxc",
+	"exec": "/usr/libexec/luci-lxc-path"
+}
