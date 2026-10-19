@@ -47,7 +47,7 @@ define Package/kexec
   $(call Package/kexec-tools/Default)
   TITLE:=Kernel boots kernel
   DEPENDS:=\
-	@(armeb||arm||i386||x86_64||powerpc64||mipsel||mips) \
+	@(armeb||arm||aarch64||i386||x86_64||powerpc64||mipsel||mips) \
 	+KEXEC_ZLIB:zlib +KEXEC_LZMA:liblzma @KERNEL_KEXEC
 endef
 
