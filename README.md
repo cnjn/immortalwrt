@@ -18,7 +18,7 @@
 - 网络：IPv6、硬件流量卸载、WireGuard、ZeroTier、dae 2.1.1
 - 存储共享：USB 盘通过 ksmbd（SMB）共享，`wsdd2` 让 Windows 的“网络”里能看到路由器
 - Mesh：内置 ZTE mesh 控制器（zte-mesh），中兴 mesh 子路由可以通过有线回程加入；默认关闭，在 LuCI 里填好 Wi-Fi 后启用
-- 容器：LXC 不在固件里，另编成 apk（`luci-app-lxc`、`lxc-start` 等），需要时用 `apk add` 安装；容器根文件系统放 USB 盘
+- 容器：LXC（含 LuCI 管理页，开机自启 `lxc-auto`）；容器根文件系统放 USB 盘
 - 覆盖层放在 `Plugin` 分区的 `.owrt` 子目录，与原厂文件共存，恢复出厂不会删除原厂文件
 - 另提供只在内存中运行的 FIT initramfs 镜像，用于调试
 
