@@ -1,0 +1,11 @@
+#!/bin/sh
+# Make Bootstrap the default LuCI theme, once. The theme packages' own scripts
+# (30_luci-theme-*) run first, and Argon's makes itself the default on a fresh
+# configuration. The marker keeps a theme picked later in LuCI across upgrades.
+
+uci -q get luci.main.zx279133_theme >/dev/null && exit 0
+uci -q get luci.themes.Bootstrap >/dev/null &&
+	uci -q set luci.main.mediaurlbase=/luci-static/bootstrap
+uci -q set luci.main.zx279133_theme=1
+uci -q commit luci
+exit 0

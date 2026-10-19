@@ -14,7 +14,7 @@
 - SoC：ZTE ZX279133
 - 设备：ZTE/ZXSLC SR1010
 - 外部内核：Linux 6.18.38
-- Web 管理：完整 LuCI，简体中文，默认 Argon 主题，另带可选的 AeroWRT（华硕风格）主题
+- Web 管理：完整 LuCI，简体中文，默认 Bootstrap 主题，另带可选的 Argon 和 AeroWRT（华硕风格）主题
 - 网络：IPv6、硬件流量卸载、WireGuard、ZeroTier、dae 2.1.1
 - 多 WAN：mwan3 负载均衡与故障切换，`luci-app-syncdial` 单线多拨（默认都不生效，配置后才起作用）
 - 组播：omcproxy（IGMPv3/MLDv2，IPv4 和 IPv6），mcfast 用 eBPF 在入口直接转发已路由的组播流（PPPoE 下约 700 Mbit/s）

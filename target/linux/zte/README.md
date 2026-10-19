@@ -158,7 +158,7 @@ has not been tried on a device.
 
 ## Defaults
 
-LAN `192.168.5.1`; Chinese interface with the Argon theme and Beijing time;
+LAN `192.168.5.1`; Chinese interface with the Bootstrap theme (Argon and AeroWRT selectable) and Beijing time;
 IPv6; hardware flow offloading (falls back to software by itself); the two
 hardware RX queues are used as they are, without software packet steering.
 

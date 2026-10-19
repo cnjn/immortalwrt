@@ -26,7 +26,7 @@ requests, use no `eval` and load no external resources; the only browser storage
 
 1. `root/etc/uci-defaults/30_luci-theme-aerowrt` only registers the theme (it shows up under
    System > System > Language and Style). Upstream also set `luci.main.mediaurlbase`, which
-   made it the active theme on every flash; this image keeps Argon as its default.
+   made it the active theme on every flash; this image keeps Bootstrap as its default.
 2. `ucode/template/themes/aerowrt/header.ut` gets the `#indicators` and `#tabmenu`
    containers. LuCI's `ui.showIndicator()` silently does nothing without `#indicators`, so
    the "unsaved changes" and "refreshing" indicators were missing.
