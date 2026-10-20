@@ -1,0 +1,17 @@
+{
+	"luci-app-fwupdate": {
+		"description": "Grant access to firmware updates",
+		"read": {
+			"ubus": {
+				"luci.fwupdate": [ "status" ]
+			},
+			"uci": [ "fwupdate" ]
+		},
+		"write": {
+			"ubus": {
+				"luci.fwupdate": [ "check", "download", "cancel", "upgrade", "ignore" ]
+			},
+			"uci": [ "fwupdate" ]
+		}
+	}
+}

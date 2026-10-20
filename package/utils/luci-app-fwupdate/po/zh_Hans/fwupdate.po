@@ -1,0 +1,238 @@
+#
+# Chinese (Simplified) translation of luci-app-fwupdate
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: htdocs/luci-static/resources/view/status/include/05_fwupdate.js:57
+msgid "A new firmware has been released: %s (%s, %s). This router runs %s."
+msgstr "新固件已发布：%s（%s，%s）。本路由器运行的是 %s。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:58
+msgid "A newer firmware is available: %s."
+msgstr "有新版本固件：%s。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:60
+msgid "A newer firmware is available: %s. You chose not to be reminded of it."
+msgstr "有新版本固件：%s。你已选择不再提醒此版本。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:115
+#: htdocs/luci-static/resources/view/system/fwupdate.js:138
+msgid "Cancel"
+msgstr "取消"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:266
+msgid "Check automatically"
+msgstr "自动检查更新"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:207
+msgid "Check error"
+msgstr "检查出错"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:221
+msgid "Check now"
+msgstr "立即检查"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:267
+msgid ""
+"Check once a day. When this is off, the router only checks when you press "
+"\"Check now\"."
+msgstr "每天检查一次。关闭后，只在你点击“立即检查”时才检查。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:158
+msgid "Checking the SHA-256…"
+msgstr "正在校验 SHA-256…"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:173
+msgid "Checking the image…"
+msgstr "正在检查镜像…"
+
+#: htdocs/luci-static/resources/view/status/include/05_fwupdate.js:69
+#: htdocs/luci-static/resources/view/system/fwupdate.js:234
+msgid "Do not remind me of this version"
+msgstr "不再提醒此版本"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:120
+msgid "Download and install"
+msgstr "下载并安装"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:228
+msgid "Download and install…"
+msgstr "下载并安装…"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:274
+msgid "Download mirror"
+msgstr "下载镜像"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:159
+msgid "Downloaded %1024.2mB of %1024.2mB"
+msgstr "已下载 %1024.2mB / %1024.2mB"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:129
+msgid "Downloading firmware…"
+msgstr "正在下载固件…"
+
+#: htdocs/luci-static/resources/view/status/include/05_fwupdate.js:24
+#: htdocs/luci-static/resources/view/system/fwupdate.js:261
+#: root/usr/share/luci/menu.d/luci-app-fwupdate.json:3
+msgid "Firmware Update"
+msgstr "固件更新"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:271
+msgid "GitHub repository"
+msgstr "GitHub 仓库"
+
+#: root/usr/share/rpcd/acl.d/luci-app-fwupdate.json:3
+msgid "Grant access to firmware updates"
+msgstr "允许访问固件更新"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:279
+msgid "HTTP proxy for the check and the download."
+msgstr "检查和下载使用的 HTTP 代理。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:214
+msgid "Image"
+msgstr "镜像"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:111
+msgid "Install firmware %s"
+msgstr "安装固件 %s"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:172
+#: htdocs/luci-static/resources/view/system/fwupdate.js:183
+msgid "Installing firmware…"
+msgstr "正在安装固件…"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:113
+msgid "Keep settings and retain the current configuration"
+msgstr "保留当前配置"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:203
+msgid "Last check"
+msgstr "上次检查"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:210
+msgid "Latest release"
+msgstr "最新发布"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:68
+msgid "No check has been made yet."
+msgstr "还没有检查过。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:278
+msgid "Proxy"
+msgstr "代理"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:211
+msgid "Published"
+msgstr "发布时间"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:275
+msgid ""
+"Put in front of the image URL, for a GitHub mirror that is reachable from "
+"here. The image is still checked against the SHA-256 that GitHub publishes."
+msgstr "加在镜像下载地址前面，用于在这里能访问的 GitHub 加速镜像。下载的镜像仍会按 GitHub 公布的 SHA-256 校验。"
+
+#: htdocs/luci-static/resources/view/status/include/05_fwupdate.js:62
+#: htdocs/luci-static/resources/view/system/fwupdate.js:251
+msgid "Release notes"
+msgstr "更新说明"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:239
+msgid "Remind me again"
+msgstr "重新提醒"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:202
+msgid "Running firmware"
+msgstr "当前固件"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:264
+msgid "Settings"
+msgstr "设置"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:126
+msgid "Starting the download…"
+msgstr "正在开始下载…"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:242
+msgid "Status"
+msgstr "状态"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:97
+msgid "The check failed: %s"
+msgstr "检查失败：%s"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:153
+#: htdocs/luci-static/resources/view/system/fwupdate.js:167
+msgid "The download failed: %s"
+msgstr "下载失败：%s"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:179
+#: htdocs/luci-static/resources/view/system/fwupdate.js:193
+msgid "The firmware was not installed: %s"
+msgstr "固件没有安装：%s"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:71
+msgid ""
+"The latest release has no image named after a revision, so it cannot be "
+"compared with this firmware."
+msgstr "最新发布里没有以版本号命名的镜像，无法与本固件比较。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:73
+msgid ""
+"The revision of this firmware is unknown, so it cannot be compared with the "
+"latest release."
+msgstr "本固件的版本号未知，无法与最新发布比较。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:112
+msgid ""
+"The router downloads %s (%1024.2mB) from GitHub, checks its SHA-256 against "
+"the release and installs it into the other firmware slot. It then restarts "
+"into the new firmware. Do not switch the router off while it does this."
+msgstr "路由器会从 GitHub 下载 %s（%1024.2mB），按发布页的 SHA-256 校验后写入另一个固件槽位，然后重启进入新固件。期间请不要断电。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:262
+msgid ""
+"The router looks for a newer firmware among the releases on GitHub and "
+"announces it on the overview page. Nothing is installed without your "
+"confirmation."
+msgstr "路由器在 GitHub 的发布中查找新固件，并在概览页提醒。未经你确认不会安装任何东西。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:66
+msgid ""
+"The router runs a different build of the same revision as the latest release."
+msgstr "本路由器运行的固件与最新发布版本号相同，但不是同一次构建。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:64
+msgid "The router runs a firmware newer than the latest release."
+msgstr "本路由器运行的固件比最新发布更新。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:62
+msgid "The router runs the latest firmware."
+msgstr "本路由器运行的是最新固件。"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:184
+msgid ""
+"The system is flashing now. DO NOT POWER OFF THE DEVICE! Wait a few minutes "
+"before you try to reconnect. It might be necessary to renew the address of "
+"your computer to reach the device again, depending on your settings."
+msgstr "正在刷写固件。请勿断电！请等待几分钟后再尝试重新连接。根据你的设置，可能需要更新电脑的 IP 地址才能再次访问路由器。"
+
+#: htdocs/luci-static/resources/view/status/include/05_fwupdate.js:74
+msgid "View and install"
+msgstr "查看并安装"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:203
+msgid "never"
+msgstr "从未"
+
+#: htdocs/luci-static/resources/view/system/fwupdate.js:153
+#: htdocs/luci-static/resources/view/system/fwupdate.js:179
+msgid "unknown error"
+msgstr "未知错误"

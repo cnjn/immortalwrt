@@ -1,0 +1,66 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# rpcd plugin for the firmware update page and the overview notice.
+#
+#   ubus call luci.fwupdate status
+#   ubus call luci.fwupdate check
+#   ubus call luci.fwupdate download
+#   ubus call luci.fwupdate upgrade '{"keep":true}'
+#   ubus call luci.fwupdate ignore '{"revision":"r38035-d301503f3e"}'
+
+FWUPDATE=${FWUPDATE:-/usr/sbin/fwupdate}
+
+# Text for use inside a JSON string.
+esc() {
+	printf '%s' "$1" | tr '\n\t' '  ' | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+# { "result": <exit code>, "message": "<stderr>" }
+run() {
+	msg=$("$FWUPDATE" "$@" 2>&1 >/dev/null)
+	rc=$?
+	printf '{ "result": %d, "message": "%s" }\n' "$rc" "$(esc "$msg")"
+	return $rc
+}
+
+case "$1" in
+list)
+	printf '{ "status": {}, "check": {}, "download": {}, "cancel": {}, "upgrade": { "keep": true }, "ignore": { "revision": "str" } }\n'
+	;;
+call)
+	read -r input
+	case "$2" in
+	status)
+		"$FWUPDATE" status
+		;;
+	check)
+		"$FWUPDATE" check 2>/dev/null
+		;;
+	download)
+		# The download outlives this call; the page follows it with status.
+		# The subshell must not keep rpcd's pipes open.
+		( setsid "$FWUPDATE" download ) >/dev/null 2>&1 </dev/null &
+		sleep 1
+		"$FWUPDATE" status
+		;;
+	cancel)
+		run cancel
+		;;
+	upgrade)
+		keep=$(printf '%s' "$input" | jsonfilter -e '@.keep' 2>/dev/null)
+		# Answer the browser first, then let sysupgrade take the system down.
+		if run verify; then
+			[ "$keep" = false ] && n=-n || n=
+			( sleep 2; "$FWUPDATE" upgrade $n ) >/dev/null 2>&1 </dev/null &
+		fi
+		;;
+	ignore)
+		run ignore "$(printf '%s' "$input" | jsonfilter -e '@.revision' 2>/dev/null)"
+		;;
+	esac
+	;;
+esac
+
+# The answer is the JSON above; rpcd must not take a failed command for a failed call.
+exit 0

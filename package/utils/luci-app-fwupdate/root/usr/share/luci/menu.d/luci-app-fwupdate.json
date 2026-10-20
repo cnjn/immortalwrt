@@ -1,0 +1,13 @@
+{
+	"admin/system/fwupdate": {
+		"title": "Firmware Update",
+		"order": 72,
+		"action": {
+			"type": "view",
+			"path": "system/fwupdate"
+		},
+		"depends": {
+			"acl": [ "luci-app-fwupdate" ]
+		}
+	}
+}
