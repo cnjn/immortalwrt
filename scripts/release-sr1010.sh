@@ -51,7 +51,7 @@ make -j"$(nproc)" "$@"
 
 # The root file system must carry the revision the image is named after.
 RELEASE_FILE=$(ls -d build_dir/target-*/root-zte/etc/openwrt_release)
-grep -qx "DISTRIB_REVISION=" "$RELEASE_FILE" ||
+grep -qx "DISTRIB_REVISION='$REV'" "$RELEASE_FILE" ||
 	die "the image reports $(grep DISTRIB_REVISION "$RELEASE_FILE"), not $REV"
 
 mkdir -p "$OUTDIR"
