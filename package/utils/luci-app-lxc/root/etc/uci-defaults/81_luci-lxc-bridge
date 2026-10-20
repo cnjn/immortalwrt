@@ -1,0 +1,9 @@
+#!/bin/sh
+# LXC's upstream bridge is not created on OpenWrt. Attach new containers
+# to the LAN bridge instead, while preserving custom bridge settings.
+
+CONF=/etc/lxc/default.conf
+
+[ -f "$CONF" ] || exit 0
+
+sed -i 's/^[[:space:]]*lxc\.net\.0\.link[[:space:]]*=[[:space:]]*lxcbr0[[:space:]]*$/lxc.net.0.link = br-lan/' "$CONF"

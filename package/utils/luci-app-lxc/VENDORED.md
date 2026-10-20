@@ -21,6 +21,10 @@ The package shadows the feed one: run `./scripts/feeds uninstall luci-app-lxc` o
   created on the overlay.
 - `80_luci-lxc-path` (uci-defaults): fills the option from the current `lxc.conf` and reloads
   ucitrack.
+- `81_luci-lxc-bridge` (uci-defaults): replaces the upstream `lxcbr0` default in
+  `/etc/lxc/default.conf` with OpenWrt's LAN bridge, `br-lan`. The upstream bridge is not
+  created on this system, so newly created containers otherwise fail to start. Custom
+  bridge values and existing container configurations are preserved.
 - The page was appended to `#tabmenu`, which the Argon theme hides (`display:none`), so
   the whole page (container list, settings) was empty there. `render()` now returns it.
 - Makefile: includes `$(TOPDIR)/feeds/luci/luci.mk`.
