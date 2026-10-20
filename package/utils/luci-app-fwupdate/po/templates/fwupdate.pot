@@ -13,6 +13,10 @@ msgstr ""
 msgid "A newer firmware is available: %s. You chose not to be reminded of it."
 msgstr ""
 
+#: root/usr/share/luci/menu.d/zz-luci-app-fwupdate.json:3
+msgid "Backup / Flash"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/system/fwupdate.js:115
 #: htdocs/luci-static/resources/view/system/fwupdate.js:138
 msgid "Cancel"

@@ -22,6 +22,10 @@ msgstr "有新版本固件：%s。"
 msgid "A newer firmware is available: %s. You chose not to be reminded of it."
 msgstr "有新版本固件：%s。你已选择不再提醒此版本。"
 
+#: root/usr/share/luci/menu.d/zz-luci-app-fwupdate.json:3
+msgid "Backup / Flash"
+msgstr "备份与刷写"
+
 #: htdocs/luci-static/resources/view/system/fwupdate.js:115
 #: htdocs/luci-static/resources/view/system/fwupdate.js:138
 msgid "Cancel"
