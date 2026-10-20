@@ -122,6 +122,25 @@ The vendor configuration partition stays read-only.
   cannot start is not replaced by the other one (seen with a kernel too large
   for the vendor U-Boot). `zte-fwslot info [-j]` shows both slots.
 
+### Firmware updates and releases
+
+The firmware reports the revision of the tree it was built from, taken from
+git (`r<commits>-<commit>`, e.g. `r38035-d301503f3e`): the `version` and
+`version.date` files of the ImmortalWrt release, which pinned it, are removed.
+
+`fwupdate` checks the latest GitHub release of `cnjn/immortalwrt` a few
+minutes after the start and then once a day, and System, Firmware Update in
+LuCI shows a newer one on the overview page and installs it on request. A
+release is recognised by its image, whose name ends in the revision:
+`sr1010-owrt-r38035-d301503f3e.bin`; the larger commit count is the newer
+firmware, and the tag and the title are free text. The image is checked
+against the SHA-256 digest GitHub publishes for the asset, then by
+`sysupgrade --test`. Settings are in `/etc/config/fwupdate`: `auto_check`,
+`repo`, `mirror` (a prefix for the download URL) and `proxy`.
+
+`./scripts/release-sr1010.sh` builds such an image from a committed and
+pushed tree and leaves it in `bin/release/`.
+
 ### Returning from the vendor system
 
 How the slots and the version header work, and the evidence for what follows, is in

@@ -22,6 +22,7 @@
 - Mesh：内置 ZTE mesh 控制器（zte-mesh），中兴 mesh 子路由可以通过有线回程加入；默认启用，下发给子路由的 Wi-Fi 默认名称 `ImmortalWrt`、密码 `00000000`，在 LuCI“网络 → 中兴组网”里修改
 - 容器：LXC（含 LuCI 管理页，开机自启 `lxc-auto`）；容器根文件系统放 USB 盘
 - 覆盖层放在 `Plugin` 分区的 `.owrt` 子目录，与原厂文件共存，恢复出厂不会删除原厂文件
+- 固件更新：每天检查一次本仓库的 GitHub 发布，有新固件时在概览页提醒，在“系统 → 固件更新”里一键下载、校验并升级；可以关闭自动检查
 - 另提供只在内存中运行的 FIT initramfs 镜像，用于调试
 
 详细说明见 [target/linux/zte/README.md](target/linux/zte/README.md)。
@@ -111,6 +112,26 @@ immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade-stock-uboot.
 第二个保持原厂 U-Boot 不变，只有内核 FIT 小于约 8 MB 时才能启动。
 镜像放不进固件槽时，打包脚本会报错并停止。
 
+## 发布固件
+
+固件报告的版本号来自 git：`r<提交数>-<提交 id>`，例如 `r38035-d301503f3e`。
+路由器上的固件更新按这个版本号判断有没有新版本，提交数越大越新；
+GitHub 发布的 tag 和标题可以随便起。
+
+```sh
+git commit ...
+git push
+./scripts/release-sr1010.sh
+```
+
+脚本要求工作区没有未提交的修改、分支已经 push（否则版本号里的提交 id
+指向最后一次 push 的提交），编译后检查根文件系统里的版本号，再把镜像复制成
+`bin/release/sr1010-owrt-<版本号>.bin`。把这个文件上传到一个新的 GitHub 发布即可，
+**文件名不要改**：路由器从文件名里读版本号，并按 GitHub 给出的 SHA-256 校验下载的镜像。
+
+合并 ImmortalWrt 上游的新版本后，如果根目录又出现了 `version` 和 `version.date`
+（上游用它们固定版本号），要再删掉，脚本会提示。
+
 ## 刷机与切换
 
 - LuCI“系统 → 备份/升级固件”或 `sysupgrade`：写入非运行槽位并重启进入。
@@ -121,6 +142,10 @@ immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade-stock-uboot.
   它就地改写另一个槽的版本头而不先擦除，NAND 只能把位从 1 变 0，写进去的是新旧字节按位与的结果，
   序号不会变大、CRC2 也会错，工具却报告成功。已在实机上验证，预测的字节与实测一致。
   详细说明和实测数据见 [target/linux/zte/docs/vendor-slots.md](target/linux/zte/docs/vendor-slots.md)。
+- LuCI“系统 → 固件更新”：路由器每天检查一次本仓库的 GitHub 发布（开机几分钟后先查一次），
+  有新固件时概览页最上面会出现提醒，可以选择不再提醒这个版本。确认后下载镜像、
+  按 GitHub 公布的 SHA-256 校验，再用 `sysupgrade` 安装。页面里可以关闭自动检查，
+  也可以设置下载镜像（GitHub 的下载地址在国内经常连不上）和 HTTP 代理。命令行是 `fwupdate`。
 - 复位键：短按重启，按住 5 秒恢复出厂设置。
 
 ## 默认设置
