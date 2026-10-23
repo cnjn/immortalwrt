@@ -1,0 +1,172 @@
+'use strict';
+
+import { access, readfile, writefile, stat, popen } from 'fs';
+import { cursor } from 'uci';
+import { connect } from 'ubus';
+
+const UCI_CONFIG = 'flowproxy';
+const STATE_FILE = '/var/run/flowproxy.running';
+const IP_CACHE = '/tmp/flowproxy/lan_ip.cache';
+const LOG_FILE = '/var/log/flowproxy.log';
+const NFT_TABLE = 'flowproxy';
+
+// 辅助函数：安全 trim
+function safe_trim(str) {
+    return (type(str) === 'string') ? trim(str) : '';
+}
+
+const methods = {
+    get_status: {
+        call: function() {
+            // 1. 快速探测
+            let is_running = access(STATE_FILE, 'f');
+            
+            // 2. 自愈：检查内核状态并同步标记文件
+            let tcp_active = (system('nft list chain inet ' + NFT_TABLE + ' LAN_MARKFLOW_TCP >/dev/null 2>&1') === 0);
+            let udp_active = (system('nft list chain inet ' + NFT_TABLE + ' LAN_MARKFLOW_UDP >/dev/null 2>&1') === 0);
+            let real_running = (tcp_active || udp_active);
+
+            if (real_running && !is_running) {
+                try { writefile(STATE_FILE, ''); } catch(e) {}
+            } else if (!real_running && is_running) {
+                try { system('rm -f ' + STATE_FILE); } catch(e) {}
+            }
+
+            // 3. IP 获取 (带缓存)
+            let lan_ip = readfile(IP_CACHE) || '';
+            if (!lan_ip) {
+                try {
+                    let ubus_conn = connect();
+                    if (ubus_conn) {
+                        let ifaces = ubus_conn.call('network.interface', 'dump');
+                        if (type(ifaces?.interface) === 'array') {
+                            // 优先寻找名为 'lan' 的接口，或者寻找拥有 ipv4 地址的第一个非回环接口
+                            let fallback_ip = '';
+                            for (let iface in ifaces.interface) {
+                                if (iface.interface === 'lan' && iface['ipv4-address']?.[0]?.address) {
+                                    lan_ip = iface['ipv4-address'][0].address;
+                                    break;
+                                }
+                                if (!fallback_ip && iface.interface !== 'loopback' && iface['ipv4-address']?.[0]?.address) {
+                                    fallback_ip = iface['ipv4-address'][0].address;
+                                }
+                            }
+                            if (!lan_ip) lan_ip = fallback_ip;
+                        }
+                        
+                        if (lan_ip) {
+                            system('mkdir -p /tmp/flowproxy');
+                            writefile(IP_CACHE, lan_ip);
+                        }
+                        ubus_conn.disconnect();
+                    }
+                } catch (e) {}
+            }
+
+            let uci_cursor = cursor();
+
+            let proxy_server_ip_addr = uci_cursor.get(UCI_CONFIG, 'global', 'proxy_server_ip_addr') || '';
+            let dns_running = (uci_cursor.get(UCI_CONFIG, 'dns_backup') ? 1 : 0);
+            
+            return {
+                running: real_running ? 1 : 0,
+                dns_running: dns_running,
+                enabled: int(uci_cursor.get(UCI_CONFIG, 'global', 'enabled') || '0'),
+                proxy_server_ip_addr: proxy_server_ip_addr,
+                proxy_server_dns_port: uci_cursor.get(UCI_CONFIG, 'global', 'proxy_server_dns_port') || '5353',
+                lan_ip: safe_trim(lan_ip),
+                interface: uci_cursor.get(UCI_CONFIG, 'global', 'interface') || 'br-lan',
+                traffic_mark: uci_cursor.get(UCI_CONFIG, 'global', 'traffic_mark') || '0x666',
+                nft: { tcp: tcp_active ? 1 : 0, udp: udp_active ? 1 : 0 }
+            };
+        }
+    },
+
+    get_logs: {
+        args: { lines: 100 },
+        call: function(request) {
+            let lines = request.args?.lines ?? 100;
+            let logs = [];
+            try {
+                if (access(LOG_FILE, 'r')) {
+                    let log_stat = stat(LOG_FILE);
+                    let content = '';
+                    if (log_stat && log_stat.size > 65536) {
+                        let fd = popen('tail -c 65536 ' + LOG_FILE);
+                        if (fd) {
+                            content = fd.read('all');
+                            fd.close();
+                        }
+                    } else {
+                        content = readfile(LOG_FILE);
+                    }
+                    if (content) {
+                        let log_lines = split(content, "\n");
+                        let total = length(log_lines);
+                        let start = (total > lines) ? (total - lines) : 0;
+                        for (let i = start; i < total; i++) {
+                            if (log_lines[i]) push(logs, log_lines[i]);
+                        }
+                    }
+                }
+            } catch (e) {}
+            return { logs };
+        }
+    },
+
+    generate_nft_config: {
+        call: function() {
+            system('mkdir -p /tmp/flowproxy');
+            system('FLOWPROXY_PREVIEW=1 /usr/share/flowproxy/generate_nft.sh 2>&1');
+            return { config: safe_trim(readfile('/tmp/flowproxy/nft.conf') || '') };
+        }
+    },
+
+    get_runtime_config: {
+        call: function() {
+            let res_file = '/tmp/flowproxy/runtime.tmp';
+            let dns_file = '/tmp/flowproxy/dns_runtime.tmp';
+            
+            system('mkdir -p /tmp/flowproxy');
+            system('/usr/share/flowproxy/generate_nft.sh runtime > ' + res_file + ' 2>&1');
+            let nft_runtime = readfile(res_file) || "(failed)";
+            system('rm -f ' + res_file);
+            
+            system('uci show dhcp.@dnsmasq[0] | grep -E "noresolv|dns_redirect|server" | sed -E "s/^dhcp\\.[^.]*\\.([^=]*)=(.*)/\\1: \\2/; s/\\x27//g; s/#/:/g" > ' + dns_file + ' 2>&1');
+            let dns_out = readfile(dns_file);
+            system('rm -f ' + dns_file);
+            
+            let dns_runtime = "\n--- [ DNSmasq Runtime Configuration ] ---\n";
+            dns_runtime += (dns_out || "(no active dnsmasq overrides)");
+            
+            return { runtime: safe_trim(nft_runtime + dns_runtime) };
+        }
+    },
+
+    get_interfaces: {
+        call: function() {
+            let interfaces = [];
+            try {
+                let ubus_conn = connect();
+                if (ubus_conn) {
+                    // 使用 network.device status 以获取所有物理设备 (包括 eth0 等 bridge 成员)
+                    let dev_status = ubus_conn.call('network.device', 'status');
+                    if (dev_status) {
+                        for (let name in dev_status) {
+                            push(interfaces, { name: name });
+                        }
+                    }
+                    ubus_conn.disconnect();
+                }
+            } catch (e) {}
+            return { interfaces };
+        }
+    },
+
+    start_service: { call: function() { return { result: (system('/etc/init.d/flowproxy start >/dev/null 2>&1') === 0) }; } },
+    stop_service: { call: function() { return { result: (system('/etc/init.d/flowproxy stop >/dev/null 2>&1') === 0) }; } },
+    restart_service: { call: function() { return { result: (system('/etc/init.d/flowproxy restart >/dev/null 2>&1') === 0) }; } },
+    clear_logs: { call: function() { try { writefile(LOG_FILE, ''); return { result: true }; } catch(e) { return { result: false }; } } }
+};
+
+return { 'luci.flowproxy': methods };

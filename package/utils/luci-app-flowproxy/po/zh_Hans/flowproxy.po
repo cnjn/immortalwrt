@@ -1,0 +1,252 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: luci-app-flowproxy\n"
+"Language: zh_Hans\n"
+
+msgid "(%d lines)"
+msgstr "(%d 行)"
+
+msgid "(n/a)"
+msgstr "(未知)"
+
+msgid "(no content / table not loaded)"
+msgstr "(无内容 / 列表未加载)"
+
+msgid "Action"
+msgstr "动作"
+
+msgid "Add rule"
+msgstr "添加规则"
+
+msgid "Clear Logs"
+msgstr "清空日志"
+
+msgid "Clear logs?"
+msgstr "确定要清空日志吗？"
+
+msgid "Copied"
+msgstr "已复制"
+
+msgid "Copy Config"
+msgstr "复制配置"
+
+msgid "Counter"
+msgstr "计数器"
+
+msgid "Current Status"
+msgstr "当前状态"
+
+msgid "Custom nftables sets"
+msgstr "自定义 nftables 集合"
+
+msgid "DNS Redirection"
+msgstr "DNS 转发"
+
+msgid "Download URL"
+msgstr "下载地址"
+
+msgid "Download failed"
+msgstr "下载失败"
+
+msgid "Downloading chnroute data..."
+msgstr "正在下载数据集..."
+
+msgid "Element Type"
+msgstr "元素类型"
+
+msgid "Elements"
+msgstr "元素列表"
+
+msgid "Enable FlowProxy"
+msgstr "启用代理分流"
+
+msgid "Enabled"
+msgstr "已启用"
+
+msgid "Error: %s"
+msgstr "错误: %s"
+
+msgid "Expecting: %s"
+msgstr "期望值: %s"
+
+msgid "File Path"
+msgstr "文件路径"
+
+msgid "FlowProxy"
+msgstr "代理分流"
+
+msgid "Force upstream DNS to proxy server"
+msgstr "强制上游 DNS 为代理服务器"
+
+msgid "Generated Config"
+msgstr "生成的配置"
+
+msgid "Invalid IPv4 address or CIDR"
+msgstr "无效的 IPv4 地址或 CIDR"
+
+msgid "Invalid MAC address"
+msgstr "无效的 MAC 地址"
+
+msgid "Invalid port or range"
+msgstr "无效的端口或端口范围"
+
+msgid "Lists"
+msgstr "名单"
+
+msgid "Live Runtime State"
+msgstr "实时运行状态"
+
+msgid "Log Level"
+msgstr "日志级别"
+
+msgid "Log Size (KB)"
+msgstr "日志文件大小 (KB)"
+
+msgid "Logs"
+msgstr "日志"
+
+msgid "LuCI Support for FlowProxy Traffic Diversion"
+msgstr "LuCI 支持 FlowProxy 流量分流"
+
+msgid "Master switch updated."
+msgstr "总开关状态已更新。"
+
+msgid "Match Type"
+msgstr "匹配类型"
+
+msgid "Match Value"
+msgstr "匹配值"
+
+msgid "Network interface"
+msgstr "网络接口"
+
+msgid "Please set download_url first"
+msgstr "请先设置下载 URL"
+
+msgid "Preview"
+msgstr "预览"
+
+msgid "Proxy server DNS port"
+msgstr "代理服务器 DNS 端口"
+
+msgid "Proxy server IP address"
+msgstr "代理服务器 IP 地址"
+
+msgid "Proxy server interface"
+msgstr "代理服务器所在接口"
+
+msgid "Quick add:"
+msgstr "快速添加预设："
+
+msgid "Refresh Logs"
+msgstr "刷新日志"
+
+msgid "Refresh Status"
+msgstr "刷新实时状态"
+
+msgid "Routing Table ID"
+msgstr "路由表 ID"
+
+msgid "Rule Priority"
+msgstr "策略路由优先级"
+
+msgid "Rules"
+msgstr "规则"
+
+msgid "Set type mismatch: expected %s, got %s"
+msgstr "集合类型不匹配: 期望 %s, 实际为 %s"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "TCP Matching Rules"
+msgstr "TCP 匹配规则列表"
+
+msgid "Traffic Mark"
+msgstr "流量标记"
+
+msgid "Traffic diversion based on nftables rules. The service will automatically start/stop when you click \"Save & Apply\"."
+msgstr "基于 nftables 规则的流量分流。当你点击 “保存并应用” 后，服务将自动启动或停止。"
+
+msgid "UDP Matching Rules"
+msgstr "UDP 匹配规则列表"
+
+msgid "Update Chnroute"
+msgstr "立即更新数据集"
+
+msgid "Updated successfully."
+msgstr "数据集更新成功。"
+
+msgid "auto_generate"
+msgstr "自动生成"
+
+msgid "checking..."
+msgstr "检测中..."
+
+msgid "chnroute_dst_ip_v4"
+msgstr "中国大陆 IP"
+
+msgid "elements"
+msgstr "元素列表"
+
+msgid "enable protocol"
+msgstr "启用协议"
+
+msgid "loading logs..."
+msgstr "日志加载中..."
+
+msgid "loading..."
+msgstr "加载中..."
+
+msgid "no logs available"
+msgstr "暂无日志内容"
+
+msgid "no_proxy_dst_ip_v4"
+msgstr "不代理的目标 IP"
+
+msgid "no_proxy_dst_tcp_ports"
+msgstr "不代理的目标 TCP 端口"
+
+msgid "no_proxy_dst_udp_ports"
+msgstr "不代理的目标 UDP 端口"
+
+msgid "no_proxy_src_ip_v4"
+msgstr "不代理的源 IP"
+
+msgid "no_proxy_src_mac"
+msgstr "不代理的源 MAC"
+
+msgid "private_dst_ip_v4"
+msgstr "私有 IP"
+
+msgid "reset %s templates"
+msgstr "重置 %s 模版"
+
+msgid "running"
+msgstr "运行中"
+
+msgid "stopped"
+msgstr "已停止"
+
+msgid "this will delete ALL current %s rules and generate default templates. are you sure?"
+msgstr "这将删除当前所有 %s 规则并加载推荐的默认模版。确定吗？"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Restarting FlowProxy service..."
+msgstr "正在重启 FlowProxy 服务..."
+
+msgid "FlowProxy service restarted successfully."
+msgstr "FlowProxy 服务重启成功。"
+
+msgid "Failed to restart FlowProxy service."
+msgstr "重启 FlowProxy 服务失败。"
+
+msgid "RPC error: %s"
+msgstr "RPC 错误: %s"
+
+msgid "The proxy server IP address must be within the subnet of the selected interface (%s)."
+msgstr "代理服务器 IP 地址必须在所选网络接口的子网网段之内 (%s)。"
+

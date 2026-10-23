@@ -1,0 +1,11 @@
+{
+	"admin/services/flowproxy": {
+		"title": "FlowProxy",
+		"description": "LuCI Support for FlowProxy Traffic Diversion",
+		"index": 50,
+		"action": {
+			"type": "view",
+			"path": "flowproxy/flowproxy"
+		}
+	}
+}

@@ -1,0 +1,105 @@
+config flowproxy 'global'
+	option enabled '0'
+	option tcp_enabled '1'
+	option udp_enabled '1'
+	option proxy_server_ip_addr ''
+	option interface 'br-lan'
+	option traffic_mark '0x666'
+	option routing_table '888'
+	option rule_priority '1000'
+	option dns_proxy_enabled '0'
+	option proxy_server_dns_port '5353'
+	option log_level 'info'
+	option log_size '1024'
+	option log_count '3'
+
+# --- TCP 默认规则 ---
+config tcp_rule
+	option enabled '1'
+	option match_type 'src_mac'
+	option match_value '@no_proxy_src_mac'
+	option action 'return'
+	option counter '0'
+
+config tcp_rule
+	option enabled '1'
+	option match_type 'dst_ip'
+	option match_value '@private_dst_ip_v4'
+	option action 'return'
+	option counter '0'
+
+config tcp_rule
+	option enabled '1'
+	option match_type 'dst_ip'
+	option match_value '@chnroute_dst_ip_v4'
+	option action 'return'
+	option counter '0'
+
+config tcp_rule
+	option enabled '1'
+	option match_type 'dst_port'
+	option match_value '@no_proxy_dst_tcp_ports'
+	option action 'return'
+	option counter '0'
+
+# --- UDP 默认规则 ---
+config udp_rule
+	option enabled '1'
+	option match_type 'src_mac'
+	option match_value '@no_proxy_src_mac'
+	option action 'return'
+	option counter '0'
+
+config udp_rule
+	option enabled '1'
+	option match_type 'dst_ip'
+	option match_value '@private_dst_ip_v4'
+	option action 'return'
+	option counter '0'
+
+config udp_rule
+	option enabled '1'
+	option match_type 'dst_ip'
+	option match_value '@chnroute_dst_ip_v4'
+	option action 'return'
+	option counter '0'
+
+config udp_rule
+	option enabled '1'
+	option match_type 'dst_port'
+	option match_value '@no_proxy_dst_udp_ports'
+	option action 'return'
+	option counter '0'
+
+# nftables set 配置
+config nftset 'no_proxy_src_mac'
+	option enabled '1'
+	option type 'ether_addr'
+
+config nftset 'no_proxy_src_ip_v4'
+	option enabled '1'
+	option type 'ipv4_addr'
+
+config nftset 'no_proxy_dst_ip_v4'
+	option enabled '1'
+	option type 'ipv4_addr'
+
+config nftset 'private_dst_ip_v4'
+	option enabled '1'
+	option type 'ipv4_addr'
+	option auto_generate '1'
+
+config nftset 'chnroute_dst_ip_v4'
+	option enabled '1'
+	option type 'ipv4_addr'
+	option file_path '/usr/share/flowproxy/chnroute.txt'
+	option download_url 'https://proxy.seckv.com/https://raw.githubusercontent.com/mayaxcn/china-ip-list/master/chnroute.txt'
+
+config nftset 'no_proxy_dst_tcp_ports'
+	option enabled '1'
+	option type 'inet_service'
+
+config nftset 'no_proxy_dst_udp_ports'
+	option enabled '1'
+	option type 'inet_service'
+	list elements '123'
