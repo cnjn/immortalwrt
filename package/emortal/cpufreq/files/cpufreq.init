@@ -43,9 +43,10 @@ start_service() {
 	do
 		[ -z "$(config_get "$NAME" "governor$i")" ] && return
 
-		write_cpufreq_config "governor$i" "$CPUFREQ_PATH/policy$i/scaling_governor"
 		write_cpufreq_config "minfreq$i" "$CPUFREQ_PATH/policy$i/scaling_min_freq"
 		write_cpufreq_config "maxfreq$i" "$CPUFREQ_PATH/policy$i/scaling_max_freq"
+		# Set the limits before a governor can issue its first frequency request.
+		write_cpufreq_config "governor$i" "$CPUFREQ_PATH/policy$i/scaling_governor"
 		if [ "$(config_get "$NAME" "governor$i")" = "ondemand" ]; then
 			write_cpufreq_config "sdfactor$i" "$CPUFREQ_PATH/ondemand/sampling_down_factor"
 			write_cpufreq_config "upthreshold$i" "$CPUFREQ_PATH/ondemand/up_threshold"
