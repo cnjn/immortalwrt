@@ -9,7 +9,7 @@ FS_MENU:=Filesystems
 
 # Kernel 6.18: netfs is always built in (no netfs.ko), and cifs_arc4.ko is gone, the
 # SMB client and server use lib/crypto/libarc4.ko (kmod-crypto-arc4) instead.
-K618:=$(filter 6.18.%,$(LINUX_VERSION))
+K618:=$(call kernel_patchver_ge,6.18)
 
 define KernelPackage/fs-9p
   SUBMENU:=$(FS_MENU)
@@ -107,12 +107,13 @@ define KernelPackage/fs-smbfs-common
   SUBMENU:=$(FS_MENU)
   TITLE:=SMBFS common dependencies support
   HIDDEN:=1
-  DEPENDS:=+kmod-fs-netfs +kmod-nls-ucs2-utils $(if $(K618),+kmod-crypto-arc4)
+  DEPENDS:=+kmod-fs-netfs +kmod-nls-ucs2-utils +LINUX_6_18:kmod-crypto-arc4 +LINUX_7_3:kmod-crypto-arc4
   KCONFIG:=\
 	CONFIG_SMBFS
   FILES:= \
 	$(if $(K618),,$(LINUX_DIR)/fs/smb/common/cifs_arc4.ko) \
-	$(LINUX_DIR)/fs/smb/common/cifs_md4.ko
+	$(LINUX_DIR)/fs/smb/common/cifs_md4.ko \
+	$(if $(call kernel_patchver_ge,7.3),$(LINUX_DIR)/fs/smb/common/smb_compress.ko)
 endef
 
 define KernelPackage/fs-smbfs-common/description

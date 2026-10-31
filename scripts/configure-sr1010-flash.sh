@@ -6,7 +6,7 @@
 set -eu
 
 TOPDIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-DEFAULT_KERNEL_TREE="$TOPDIR/../linux-mainline-zte-zxslc-sr1010/linux-6.18.38"
+DEFAULT_KERNEL_TREE="$TOPDIR/../linux-mainline-zte-zxslc-sr1010/linux-7.3"
 KERNEL_TREE=${KERNEL_TREE:-$DEFAULT_KERNEL_TREE}
 
 if [ -z "${SR1010_VENDOR_TEMPLATE:-}" ] || [ ! -f "$SR1010_VENDOR_TEMPLATE" ]; then
@@ -22,10 +22,10 @@ fi
 KERNEL_TREE=$(CDPATH= cd -- "$KERNEL_TREE" && pwd)
 
 # The kernel embeds the network microcode from this tree; CONFIG_EXTRA_FIRMWARE_DIR
-# in target/linux/zte/zx279133/config-6.18 is relative to the kernel tree.
+# in target/linux/zte/zx279133/config-7.3 is relative to the kernel tree.
 FIRMWARE_DIR=$(CDPATH= cd -- "$KERNEL_TREE/../../immortalwrt/target/linux/zte/zx279133/firmware" 2>/dev/null && pwd) || true
 if [ "$FIRMWARE_DIR" != "$TOPDIR/target/linux/zte/zx279133/firmware" ]; then
-	echo "the kernel tree must be <dir>/linux-mainline-zte-zxslc-sr1010/linux-6.18.38 next to <dir>/immortalwrt:" >&2
+	echo "the kernel tree must be <dir>/linux-mainline-zte-zxslc-sr1010/linux-7.3 next to <dir>/immortalwrt:" >&2
 	echo "  $KERNEL_TREE/../../immortalwrt does not lead back to $TOPDIR" >&2
 	exit 1
 fi

@@ -70,6 +70,12 @@ else
       LINUX_UNAME_VERSION:=$(strip $(shell cat $(LINUX_DIR)/include/config/kernel.release 2>/dev/null))
   endif
 
+  # External-tree probe builds must not rename firmware module directories.
+  # This target already pins KERNELRELEASE below; pin the packaging name too.
+  ifeq ($(BOARD):$(KERNEL_PATCHVER),zte:7.3)
+    LINUX_UNAME_VERSION:=$(LINUX_VERSION)
+  endif
+
   MODULES_SUBDIR:=lib/modules/$(LINUX_UNAME_VERSION)
   TARGET_MODULES_DIR:=$(LINUX_TARGET_DIR)/$(MODULES_SUBDIR)
 
@@ -118,7 +124,7 @@ KERNEL_MAKE_FLAGS = \
 	CONFIG_SHELL="$(BASH)" \
 	$(if $(findstring c,$(OPENWRT_VERBOSE)),V=1,V='') \
 	$(if $(PKG_BUILD_ID),LDFLAGS_MODULE=--build-id=0x$(PKG_BUILD_ID)) \
-	cmd_syscalls= \
+	$(if $(filter 7.3,$(KERNEL_PATCHVER)),,cmd_syscalls=) \
 	$(if $(__package_mk),KBUILD_EXTRA_SYMBOLS="$(wildcard $(PKG_SYMVERS_DIR)/*.symvers)")
 
 ifneq (,$(KERNEL_CC))
@@ -136,6 +142,11 @@ endif
 ifneq ($(HOST_OS),Linux)
   KERNEL_MAKE_FLAGS += CONFIG_STACK_VALIDATION=
   export SKIP_STACK_VALIDATION:=1
+endif
+
+# Keep the external ZTE 7.3 kernel release aligned with packaged module paths.
+ifeq ($(BOARD):$(KERNEL_PATCHVER),zte:7.3)
+  KERNEL_MAKE_FLAGS += KERNELRELEASE=$(LINUX_VERSION) LOCALVERSION=
 endif
 
 KERNEL_MAKEOPTS = -C $(LINUX_DIR) $(KERNEL_MAKE_FLAGS)
@@ -248,6 +259,7 @@ $(call KernelPackage/$(1)/config)
 			if grep -q "$$$$$$$${mod##$(LINUX_DIR)/}" "$(LINUX_DIR)/modules.builtin"; then \
 				echo "NOTICE: module '$$$$$$$$mod' is built-in."; \
 			elif [ -e $$$$$$$$mod ]; then \
+				$(if $(filter zte:7.3,$(BOARD):$(KERNEL_PATCHVER)),$(SHELL) $(SCRIPT_DIR)/check-zte-module-release.sh "$(LINUX_UNAME_VERSION)" "$(TARGET_CROSS)strings" $$$$$$$$mod || exit 1;) \
 				mkdir -p $$(1)/$(MODULES_SUBDIR) ; \
 				$(CP) -L $$$$$$$$mod $$(1)/$(MODULES_SUBDIR)/ ; \
 			else \

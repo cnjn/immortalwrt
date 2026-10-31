@@ -6,7 +6,7 @@ BOARD:=zte
 BOARDNAME:=ZTE SoCs
 SUBTARGETS:=zx279133
 FEATURES:=dt gpio ramdisk cpiogz usb
-KERNEL_PATCHVER:=6.18
+KERNEL_PATCHVER:=7.3
 
 ifeq ($(DUMP),)
   ifeq ($(strip $(CONFIG_EXTERNAL_KERNEL_TREE)),)

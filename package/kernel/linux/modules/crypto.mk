@@ -7,7 +7,7 @@
 
 # Kernel 6.18 moved generic crypto and CRC code to lib/ and folded the arm64
 # NEON code into the libraries: some module files have new names or are gone.
-K618:=$(filter 6.18.%,$(LINUX_VERSION))
+K618:=$(call kernel_patchver_ge,6.18)
 
 CRYPTO_MENU:=Cryptographic API modules
 
@@ -327,11 +327,9 @@ $(eval $(call KernelPackage,crypto-gf128))
 define KernelPackage/crypto-ghash
   TITLE:=GHASH digest CryptoAPI module
   DEPENDS:=+kmod-crypto-gf128 +kmod-crypto-hash
-  KCONFIG:= \
-	CONFIG_CRYPTO_GHASH \
-	CONFIG_CRYPTO_GHASH_ARM_CE
-  FILES:=$(LINUX_DIR)/crypto/ghash-generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,ghash-generic)
+  KCONFIG:=CONFIG_CRYPTO_LIB_GF128HASH@ge7.3 CONFIG_CRYPTO_GHASH@lt7.3 CONFIG_CRYPTO_GHASH_ARM_CE@lt7.3
+  FILES:=$(if $(call kernel_patchver_ge,7.3),$(LINUX_DIR)/lib/crypto/libgf128hash.ko,$(LINUX_DIR)/crypto/ghash-generic.ko)
+  AUTOLOAD:=$(call AutoLoad,09,$(if $(call kernel_patchver_ge,7.3),libgf128hash,ghash-generic))
   $(call AddDepends/crypto)
 endef
 
@@ -1035,8 +1033,8 @@ define KernelPackage/crypto-sha3
   TITLE:=SHA3 digest CryptoAPI module
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:= CONFIG_CRYPTO_SHA3
-  FILES:=$(LINUX_DIR)/crypto/sha3_generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha3_generic)
+  FILES:=$(if $(call kernel_patchver_ge,7.3),$(LINUX_DIR)/crypto/sha3.ko $(LINUX_DIR)/lib/crypto/libsha3.ko,$(LINUX_DIR)/crypto/sha3_generic.ko)
+  AUTOLOAD:=$(call AutoLoad,09,$(if $(call kernel_patchver_ge,7.3),sha3,sha3_generic))
   $(call AddDepends/crypto)
 endef
 

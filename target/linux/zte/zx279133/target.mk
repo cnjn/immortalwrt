@@ -7,6 +7,7 @@ KERNELNAME:=Image dtbs
 # Keep the RAM image focused while providing a minimal LuCI administration UI.
 DEFAULT_PACKAGES.tweak:=
 DEFAULT_PACKAGES += \
+	kmod-zte-npu kmod-zte-fnoffload kmod-zte-rtl8372n \
 	dnsmasq ethtool ip-full \
 	luci-base luci-mod-admin-full luci-theme-bootstrap \
 	uhttpd uhttpd-mod-ubus \

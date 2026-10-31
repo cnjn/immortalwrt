@@ -7,7 +7,7 @@
 
 # Kernel 6.18 moved generic crypto and CRC code to lib/ and folded the arm64
 # NEON code into the libraries: some module files have new names or are gone.
-K618:=$(filter 6.18.%,$(LINUX_VERSION))
+K618:=$(call kernel_patchver_ge,6.18)
 
 LIB_MENU:=Libraries
 

@@ -1,0 +1,438 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: luci-app-flowproxy\n"
+""
+
+msgid "(%d lines)"
+msgstr ""
+
+msgid "(n/a)"
+msgstr ""
+
+msgid "(no content / table not loaded)"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Add rule"
+msgstr ""
+
+msgid "Clear Logs"
+msgstr ""
+
+msgid "Clear logs?"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Copy Config"
+msgstr ""
+
+msgid "Counter"
+msgstr ""
+
+msgid "Current Status"
+msgstr ""
+
+msgid "Custom nftables sets"
+msgstr ""
+
+msgid "DNS Redirection"
+msgstr ""
+
+msgid "Download URL"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Downloading chnroute data..."
+msgstr ""
+
+msgid "Element Type"
+msgstr ""
+
+msgid "Elements"
+msgstr ""
+
+msgid "Enable FlowProxy"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Error: %s"
+msgstr ""
+
+msgid "Expecting: %s"
+msgstr ""
+
+msgid "File Path"
+msgstr ""
+
+msgid "FlowProxy"
+msgstr ""
+
+msgid "Force upstream DNS to proxy server"
+msgstr ""
+
+msgid "Generated Config"
+msgstr ""
+
+msgid "Invalid IPv4 address or CIDR"
+msgstr ""
+
+msgid "Invalid MAC address"
+msgstr ""
+
+msgid "Invalid port or range"
+msgstr ""
+
+msgid "Lists"
+msgstr ""
+
+msgid "Live Runtime State"
+msgstr ""
+
+msgid "Log Level"
+msgstr ""
+
+msgid "Log Size (KB)"
+msgstr ""
+
+msgid "Logs"
+msgstr ""
+
+msgid "LuCI Support for FlowProxy Traffic Diversion"
+msgstr ""
+
+msgid "Master switch updated."
+msgstr ""
+
+msgid "Match Type"
+msgstr ""
+
+msgid "Match Value"
+msgstr ""
+
+msgid "Network interface"
+msgstr ""
+
+msgid "Please set download_url first"
+msgstr ""
+
+msgid "Preview"
+msgstr ""
+
+msgid "Proxy server DNS port"
+msgstr ""
+
+msgid "Proxy server IP address"
+msgstr ""
+
+msgid "Quick add:"
+msgstr ""
+
+msgid "Refresh Logs"
+msgstr ""
+
+msgid "Refresh Status"
+msgstr ""
+
+msgid "Routing Table ID"
+msgstr ""
+
+msgid "Rules"
+msgstr ""
+
+msgid "Set type mismatch: expected %s, got %s"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "TCP Matching Rules"
+msgstr ""
+
+msgid "Traffic Mark"
+msgstr ""
+
+msgid "Traffic diversion based on nftables rules. The service will automatically start/stop when you click \"Save & Apply\"."
+msgstr ""
+
+msgid "UDP Matching Rules"
+msgstr ""
+
+msgid "Update Chnroute"
+msgstr ""
+
+msgid "Updated successfully."
+msgstr ""
+
+msgid "auto_generate"
+msgstr ""
+
+msgid "checking..."
+msgstr ""
+
+msgid "chnroute_dst_ip_v4"
+msgstr ""
+
+msgid "elements"
+msgstr ""
+
+msgid "enable protocol"
+msgstr ""
+
+msgid "loading logs..."
+msgstr ""
+
+msgid "loading..."
+msgstr ""
+
+msgid "no logs available"
+msgstr ""
+
+msgid "no_proxy_dst_ip_v4"
+msgstr ""
+
+msgid "no_proxy_dst_tcp_ports"
+msgstr ""
+
+msgid "no_proxy_dst_udp_ports"
+msgstr ""
+
+msgid "no_proxy_src_ip_v4"
+msgstr ""
+
+msgid "no_proxy_src_mac"
+msgstr ""
+
+msgid "private_dst_ip_v4"
+msgstr ""
+
+msgid "reset %s templates"
+msgstr ""
+
+msgid "running"
+msgstr ""
+
+msgid "stopped"
+msgstr ""
+
+msgid "this will delete ALL current %s rules and generate default templates. are you sure?"
+msgstr ""
+
+
+msgid "Pre-routing"
+msgstr ""
+
+msgid "Enable direct domains"
+msgstr ""
+
+msgid "Matching domains are resolved directly by the router. Their IPv4 addresses bypass the NAS. Cached addresses are restored on reload. Devices must use the router DNS; shared CDN addresses can also bypass the proxy."
+msgstr ""
+
+msgid "DomainSuffix"
+msgstr ""
+
+msgid "Matches the domain itself and all subdomains, for example example.com and tracker.example.com."
+msgstr ""
+
+msgid "Enter a domain name without a URL scheme, path or port."
+msgstr ""
+
+msgid "DomainKeyword"
+msgstr ""
+
+msgid "Case-insensitive substring matching anywhere in the domain name. Broad keywords can bypass unrelated domains."
+msgstr ""
+
+msgid "Use letters, digits, dots, underscores or hyphens."
+msgstr ""
+
+msgid "Direct domain DNS server"
+msgstr ""
+
+msgid "Direct domain status"
+msgstr ""
+
+msgid "Running; %d cached IPv4 addresses"
+msgstr ""
+
+msgid "Disabled or no domain rules configured"
+msgstr ""
+
+msgid "Router DNS bridge"
+msgstr ""
+
+msgid "Apple services"
+msgstr ""
+
+msgid "Microsoft 365 services"
+msgstr ""
+
+msgid "Direct Apple service IP ranges"
+msgstr ""
+
+msgid "Direct Microsoft service IP ranges (Microsoft 365)"
+msgstr ""
+
+msgid "Bypass the NAS for the IPv4 ranges in the Apple service list. Rules update daily. Existing manual IP and domain bypass rules remain independent when this switch is off."
+msgstr ""
+
+msgid "Use the official Microsoft 365 Worldwide and China IPv4 ranges for Office, Outlook, OneDrive and Teams. Rules update daily; this does not bypass all Azure or all Microsoft domains."
+msgstr ""
+
+msgid "Service IP rules"
+msgstr ""
+
+msgid "Update service IP rules"
+msgstr ""
+
+msgid "Update now"
+msgstr ""
+
+msgid "%d IPv4 ranges"
+msgstr ""
+
+msgid "Last verified"
+msgstr ""
+
+msgid "Bundled rules"
+msgstr ""
+
+msgid "Update failed; keeping the last valid rules"
+msgstr ""
+
+msgid "Update requested. The status below refreshes automatically; existing rules remain active during download."
+msgstr ""
+
+msgid "Failed to start the update."
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Fallback when the proxy device is unavailable"
+msgstr ""
+
+msgid "Fallback when proxy internet access is unavailable"
+msgstr ""
+
+msgid "Restore direct routing and the original router DNS when the NAS, SOCKS service or required router DNS bridge is unavailable. Resume diversion automatically after recovery."
+msgstr ""
+
+msgid "Test HTTPS access through the proxy, using its current domain routing policies. If every probe URL fails repeatedly, restore direct routing. Direct fallback does not make blocked websites accessible."
+msgstr ""
+
+msgid "Proxy SOCKS port"
+msgstr ""
+
+msgid "Proxy internet probe URLs"
+msgstr ""
+
+msgid "Up to five HTTPS URLs. Any successful response keeps diversion active; all URLs must fail to count a failed round. These checks cover the policies used by these domains, not every proxy group."
+msgstr ""
+
+msgid "Use an HTTPS URL without credentials or whitespace."
+msgstr ""
+
+msgid "Use up to five HTTPS probe URLs without credentials or whitespace."
+msgstr ""
+
+msgid "Health check interval (seconds)"
+msgstr ""
+
+msgid "Probe timeout (seconds)"
+msgstr ""
+
+msgid "Consecutive failures before fallback"
+msgstr ""
+
+msgid "Consecutive successes before recovery"
+msgstr ""
+
+msgid "Fallback status"
+msgstr ""
+
+msgid "Healthy"
+msgstr ""
+
+msgid "FlowProxy is stopped"
+msgstr ""
+
+msgid "Automatic fallback is disabled"
+msgstr ""
+
+msgid "Device check is failing; waiting for the failure threshold"
+msgstr ""
+
+msgid "Proxy internet check is failing; waiting for the failure threshold"
+msgstr ""
+
+msgid "Device unavailable; direct routing is active"
+msgstr ""
+
+msgid "Proxy internet unavailable; direct routing is active"
+msgstr ""
+
+msgid "Device unavailable; device fallback is disabled"
+msgstr ""
+
+msgid "Waiting for health checks"
+msgstr ""
+
+msgid "Export configuration"
+msgstr ""
+
+msgid "Download backup"
+msgstr ""
+
+msgid "Export saved settings, ordered rules, device/IP/port lists, direct domains and referenced list files. Temporary DNS backups and connection caches are excluded."
+msgstr ""
+
+msgid "Import configuration"
+msgstr ""
+
+msgid "Choose backup and import"
+msgstr ""
+
+msgid "Import and apply"
+msgstr ""
+
+msgid "Import replaces all saved FlowProxy settings, rules and lists, including its enable switch. Unsaved page changes will be discarded. Rules are validated first; an apply failure restores the previous configuration."
+msgstr ""
+
+msgid "Choose a FlowProxy JSON backup smaller than 1 MiB."
+msgstr ""
+
+msgid "Unsupported FlowProxy backup format/version."
+msgstr ""
+
+msgid "Validating and applying configuration..."
+msgstr ""
+
+msgid "Uploading configuration: %d%%"
+msgstr ""
+
+msgid "Configuration export failed."
+msgstr ""
+
+msgid "Configuration import failed."
+msgstr ""
+
+msgid "Configuration imported and applied successfully."
+msgstr ""
+
+msgid "Unable to read the backup file."
+msgstr ""
+
+msgid "Import is still running. Check the service status before retrying."
+msgstr ""
+
+msgid "Imported rules"
+msgstr ""

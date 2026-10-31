@@ -12,7 +12,12 @@ ifneq ($(CONFIG_USE_LLVM_HOST),)
     BPF_PATH:=$(PATH)
   endif
   CLANG:=$(call find-llvm-tool,clang clang-13 clang-12)
-  LLVM_VER:=$(subst clang,,$(notdir $(CLANG)))
+  # Resolve LLVM's version from clang itself. On some hosts `clang` is an
+  # unversioned symlink while companion tools are installed as llvm-tool-N.
+  LLVM_VER:=$(shell $(CLANG) --version | sed -n 's/.*version \([0-9][0-9]*\).*/-\1/p' | head -n1)
+  ifeq ($(LLVM_VER),)
+    LLVM_VER:=$(subst clang,,$(notdir $(CLANG)))
+  endif
 
   BPF_PATH:=$(dir $(CLANG)):$(BPF_PATH)
   LLVM_LLC:=$(call find-llvm-tool,llc$(LLVM_VER))

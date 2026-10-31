@@ -1,0 +1,26 @@
+{
+	"luci-app-flowproxy": {
+		"description": "Grant access to flowproxy configuration",
+		"read": {
+			"uci": [ "flowproxy" ],
+			"file": {
+				"/usr/share/flowproxy/*": [ "read" ]
+			},
+			"ubus": {
+				"luci.flowproxy": [ "get_status", "get_logs", "generate_nft_config", "get_runtime_config", "get_interfaces", "export_config", "get_import_status" ],
+				"network.interface": [ "dump" ]
+			}
+		},
+		"write": {
+			"uci": [ "flowproxy" ],
+			"file": {
+				"/usr/bin/wget": [ "exec" ],
+				"/usr/bin/wc": [ "exec" ],
+				"/usr/share/flowproxy/generate_nft.sh": [ "exec" ]
+			},
+			"ubus": {
+				"luci.flowproxy": [ "start_service", "stop_service", "restart_service", "clear_logs", "update_service_ips", "import_config", "begin_import", "upload_import_chunk", "finish_import" ]
+			}
+		}
+	}
+}

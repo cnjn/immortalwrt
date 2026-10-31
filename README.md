@@ -13,8 +13,8 @@
 - 架构：ARM64
 - SoC：ZTE ZX279133
 - 设备：ZTE/ZXSLC SR1010
-- 外部内核：Linux 6.18.38
-- Web 管理：完整 LuCI，简体中文，默认 Bootstrap 主题，另带可选的 Argon 和 AeroWRT（华硕风格）主题
+- 外部内核：Linux 7.3.0（`linux-7.3` 分支）
+- Web 管理：完整 LuCI，简体中文，默认 Design 主题，另带可选的 Argon 和 AeroWRT（华硕风格）主题
 - 网络：IPv6、硬件流量卸载、WireGuard、ZeroTier、dae 2.1.1
 - 多 WAN：mwan3 负载均衡与故障切换，`luci-app-syncdial` 单线多拨（默认都不生效，配置后才起作用）
 - 组播：omcproxy（IGMPv3/MLDv2，IPv4 和 IPv6），mcfast 用 eBPF 在入口直接转发已路由的组播流（PPPoE 下约 700 Mbit/s）
@@ -35,8 +35,8 @@
 
 构建需要本仓库和准备好的 ZX279133 Linux 内核仓库：
 
-- ImmortalWrt 适配仓库：<https://github.com/cnjn/immortalwrt>
-- Linux 内核仓库：<https://github.com/cnjn/linux-mainline-zte-zxslc-sr1010>
+- ImmortalWrt 适配仓库：<https://github.com/fxfall/immortalwrt>
+- Linux 内核仓库：<https://github.com/fxfall/linux-mainline-zte-zxslc-sr1010>
 
 建议将两个仓库克隆到同一目录下：
 
@@ -44,11 +44,12 @@
 mkdir sr1010-build
 cd sr1010-build
 
-git clone --branch build --recurse-submodules \
-  https://github.com/cnjn/linux-mainline-zte-zxslc-sr1010.git
+git clone --branch linux-7.3 \
+  https://github.com/fxfall/linux-mainline-zte-zxslc-sr1010.git \
+  linux-mainline-zte-zxslc-sr1010/linux-7.3
 
-git clone --branch sr1010-zx279133 \
-  https://github.com/cnjn/immortalwrt.git
+git clone --branch linux-7.3 \
+  https://github.com/fxfall/immortalwrt.git
 ```
 
 目录结构应为：
@@ -57,11 +58,11 @@ git clone --branch sr1010-zx279133 \
 sr1010-build/
 ├── immortalwrt/
 └── linux-mainline-zte-zxslc-sr1010/
-    └── linux-6.18.38/
+    └── linux-7.3/
 ```
 
-请务必为内核仓库使用 `--recurse-submodules`，否则不会取得实际的
-`linux-6.18.38` 内核源码。
+`linux-7.3` 分支直接包含内核源码，克隆时请保留上面的两级目录，
+以便构建脚本找到内核和微码。上游适配来源为 [cnjn 的内核仓库](https://github.com/cnjn/linux-mainline-zte-zxslc-sr1010) 和 [ImmortalWrt 仓库](https://github.com/cnjn/immortalwrt)。
 
 ## 编译
 
@@ -85,20 +86,20 @@ dae 的 eBPF 程序由主机上的 `clang` 编译，需要先安装带 BPF 目�
 配置脚本默认使用相邻目录中的内核：
 
 ```text
-../linux-mainline-zte-zxslc-sr1010/linux-6.18.38
+../linux-mainline-zte-zxslc-sr1010/linux-7.3
 ```
 
 如果内核位于其他位置，可以显式指定绝对路径：
 
 ```sh
-KERNEL_TREE=/absolute/path/to/linux-6.18.38 \
+KERNEL_TREE=/absolute/path/to/linux-7.3 \
   SR1010_VENDOR_TEMPLATE=/绝对路径/原厂升级包.bin \
   ./scripts/configure-sr1010-flash.sh
 
 make -j$(nproc)
 ```
 
-内核目录必须是 `<目录>/linux-mainline-zte-zxslc-sr1010/linux-6.18.38`，
+内核目录必须是 `<目录>/linux-mainline-zte-zxslc-sr1010/linux-7.3`，
 与 `<目录>/immortalwrt` 并列，脚本会检查。
 
 编译产物位于 `bin/targets/zte/zx279133/`：

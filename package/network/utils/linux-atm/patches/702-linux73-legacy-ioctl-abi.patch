@@ -1,0 +1,43 @@
+Retain known legacy ioctl encodings for userspace tools built with Linux 7.3
+headers. This does not reintroduce removed kernel SVC/LECS support; such
+requests return the kernel error. Encodings are copied from Linux 6.18 UAPI.
+
+--- a/src/include/atm.h
++++ b/src/include/atm.h
+@@ -9,6 +9,36 @@
+ #include <stdint.h>
+ #include <sys/socket.h>
+ #include <linux/atm.h>
++
++/* Legacy ioctl ABI from Linux 6.18 UAPI. New kernels can return ENOTTY. */
++#include <linux/atmdev.h>
++#ifndef ATM_GETADDR
++#define ATM_GETADDR	_IOW('a',ATMIOC_ITF+6,struct atmif_sioc)
++#endif
++#ifndef ATM_RSTADDR
++#define ATM_RSTADDR	_IOW('a',ATMIOC_ITF+7,struct atmif_sioc)
++#endif
++#ifndef ATM_ADDADDR
++#define ATM_ADDADDR	_IOW('a',ATMIOC_ITF+8,struct atmif_sioc)
++#endif
++#ifndef ATM_DELADDR
++#define ATM_DELADDR	_IOW('a',ATMIOC_ITF+9,struct atmif_sioc)
++#endif
++#ifndef ATM_ADDLECSADDR
++#define ATM_ADDLECSADDR	_IOW('a', ATMIOC_ITF+14, struct atmif_sioc)
++#endif
++#ifndef ATM_DELLECSADDR
++#define ATM_DELLECSADDR	_IOW('a', ATMIOC_ITF+15, struct atmif_sioc)
++#endif
++#ifndef ATM_GETLECSADDR
++#define ATM_GETLECSADDR	_IOW('a', ATMIOC_ITF+16, struct atmif_sioc)
++#endif
++#ifndef ATM_ADDPARTY
++#define ATM_ADDPARTY  	_IOW('a', ATMIOC_SPECIAL+4,struct atm_iobuf)
++#endif
++#ifndef ATM_DROPPARTY
++#define ATM_DROPPARTY 	_IOW('a', ATMIOC_SPECIAL+5,int)
++#endif
+ 
+ #ifdef  __cplusplus
+ extern "C" {

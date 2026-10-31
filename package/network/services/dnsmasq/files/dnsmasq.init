@@ -357,6 +357,11 @@ dhcp_host_add() {
 	[ "$enable" = "0" ] && return 0
 
 	config_get name "$cfg" name
+	# Keep UTF-8 UCI names as display aliases; dnsmasq requires ASCII names.
+	# MAC/DUID still identifies the reservation; do not emit an invalid host name.
+	case "$name" in
+		*[!\ -~]*) name="" ;;
+	esac
 	config_get ip "$cfg" ip
 	config_get hostid "$cfg" hostid
 

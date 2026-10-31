@@ -1,0 +1,462 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: luci-app-flowproxy\n"
+"Language: zh_Hans\n"
+
+msgid "(%d lines)"
+msgstr "(%d 行)"
+
+msgid "(n/a)"
+msgstr "(未知)"
+
+msgid "(no content / table not loaded)"
+msgstr "(无内容 / 列表未加载)"
+
+msgid "Action"
+msgstr "动作"
+
+msgid "Add rule"
+msgstr "添加规则"
+
+msgid "Clear Logs"
+msgstr "清空日志"
+
+msgid "Clear logs?"
+msgstr "确定要清空日志吗？"
+
+msgid "Copied"
+msgstr "已复制"
+
+msgid "Copy Config"
+msgstr "复制配置"
+
+msgid "Counter"
+msgstr "计数器"
+
+msgid "Current Status"
+msgstr "当前状态"
+
+msgid "Custom nftables sets"
+msgstr "自定义 nftables 集合"
+
+msgid "DNS Redirection"
+msgstr "DNS 转发"
+
+msgid "Download URL"
+msgstr "下载地址"
+
+msgid "Download failed"
+msgstr "下载失败"
+
+msgid "Downloading chnroute data..."
+msgstr "正在下载数据集..."
+
+msgid "Element Type"
+msgstr "元素类型"
+
+msgid "Elements"
+msgstr "元素列表"
+
+msgid "Enable FlowProxy"
+msgstr "启用代理分流"
+
+msgid "Enabled"
+msgstr "已启用"
+
+msgid "Error: %s"
+msgstr "错误: %s"
+
+msgid "Expecting: %s"
+msgstr "期望值: %s"
+
+msgid "File Path"
+msgstr "文件路径"
+
+msgid "FlowProxy"
+msgstr "代理分流"
+
+msgid "Force upstream DNS to proxy server"
+msgstr "强制上游 DNS 为代理服务器"
+
+msgid "Generated Config"
+msgstr "生成的配置"
+
+msgid "Invalid IPv4 address or CIDR"
+msgstr "无效的 IPv4 地址或 CIDR"
+
+msgid "Invalid MAC address"
+msgstr "无效的 MAC 地址"
+
+msgid "Invalid port or range"
+msgstr "无效的端口或端口范围"
+
+msgid "Lists"
+msgstr "名单"
+
+msgid "Live Runtime State"
+msgstr "实时运行状态"
+
+msgid "Log Level"
+msgstr "日志级别"
+
+msgid "Log Size (KB)"
+msgstr "日志文件大小 (KB)"
+
+msgid "Logs"
+msgstr "日志"
+
+msgid "LuCI Support for FlowProxy Traffic Diversion"
+msgstr "LuCI 支持 FlowProxy 流量分流"
+
+msgid "Master switch updated."
+msgstr "总开关状态已更新。"
+
+msgid "Match Type"
+msgstr "匹配类型"
+
+msgid "Match Value"
+msgstr "匹配值"
+
+msgid "Network interface"
+msgstr "网络接口"
+
+msgid "Please set download_url first"
+msgstr "请先设置下载 URL"
+
+msgid "Preview"
+msgstr "预览"
+
+msgid "Proxy server DNS port"
+msgstr "代理服务器 DNS 端口"
+
+msgid "Proxy server IP address"
+msgstr "代理服务器 IP 地址"
+
+msgid "Proxy server interface"
+msgstr "代理服务器所在接口"
+
+msgid "Quick add:"
+msgstr "快速添加预设："
+
+msgid "Refresh Logs"
+msgstr "刷新日志"
+
+msgid "Refresh Status"
+msgstr "刷新实时状态"
+
+msgid "Routing Table ID"
+msgstr "路由表 ID"
+
+msgid "Rule Priority"
+msgstr "策略路由优先级"
+
+msgid "Rules"
+msgstr "规则"
+
+msgid "Set type mismatch: expected %s, got %s"
+msgstr "集合类型不匹配: 期望 %s, 实际为 %s"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "TCP Matching Rules"
+msgstr "TCP 匹配规则列表"
+
+msgid "Traffic Mark"
+msgstr "流量标记"
+
+msgid "Traffic diversion based on nftables rules. The service will automatically start/stop when you click \"Save & Apply\"."
+msgstr "基于 nftables 规则的流量分流。当你点击 “保存并应用” 后，服务将自动启动或停止。"
+
+msgid "UDP Matching Rules"
+msgstr "UDP 匹配规则列表"
+
+msgid "Update Chnroute"
+msgstr "立即更新数据集"
+
+msgid "Updated successfully."
+msgstr "数据集更新成功。"
+
+msgid "auto_generate"
+msgstr "自动生成"
+
+msgid "checking..."
+msgstr "检测中..."
+
+msgid "chnroute_dst_ip_v4"
+msgstr "中国大陆 IP"
+
+msgid "elements"
+msgstr "元素列表"
+
+msgid "enable protocol"
+msgstr "启用协议"
+
+msgid "loading logs..."
+msgstr "日志加载中..."
+
+msgid "loading..."
+msgstr "加载中..."
+
+msgid "no logs available"
+msgstr "暂无日志内容"
+
+msgid "no_proxy_dst_ip_v4"
+msgstr "不代理的目标 IP"
+
+msgid "no_proxy_dst_tcp_ports"
+msgstr "不代理的目标 TCP 端口"
+
+msgid "no_proxy_dst_udp_ports"
+msgstr "不代理的目标 UDP 端口"
+
+msgid "no_proxy_src_ip_v4"
+msgstr "不代理的源 IP"
+
+msgid "no_proxy_src_mac"
+msgstr "不代理的源 MAC"
+
+msgid "private_dst_ip_v4"
+msgstr "私有 IP"
+
+msgid "reset %s templates"
+msgstr "重置 %s 模版"
+
+msgid "running"
+msgstr "运行中"
+
+msgid "stopped"
+msgstr "已停止"
+
+msgid "this will delete ALL current %s rules and generate default templates. are you sure?"
+msgstr "这将删除当前所有 %s 规则并加载推荐的默认模版。确定吗？"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Restarting FlowProxy service..."
+msgstr "正在重启 FlowProxy 服务..."
+
+msgid "FlowProxy service restarted successfully."
+msgstr "FlowProxy 服务重启成功。"
+
+msgid "Failed to restart FlowProxy service."
+msgstr "重启 FlowProxy 服务失败。"
+
+msgid "RPC error: %s"
+msgstr "RPC 错误: %s"
+
+msgid "The proxy server IP address must be within the subnet of the selected interface (%s)."
+msgstr "代理服务器 IP 地址必须在所选网络接口的子网网段之内 (%s)。"
+
+
+msgid "Pre-routing"
+msgstr "前置分流"
+
+msgid "Enable direct domains"
+msgstr "启用域名直连（绕过 NAS）"
+
+msgid "Matching domains are resolved directly by the router. Their IPv4 addresses bypass the NAS. Cached addresses are restored on reload. Devices must use the router DNS; shared CDN addresses can also bypass the proxy."
+msgstr "匹配域名由路由器直接解析，其 IPv4 流量绕过 NAS；重载自动恢复已缓存地址。设备需使用路由器 DNS，共享同一 CDN 地址的其他域名也可能直连。"
+
+msgid "DomainSuffix"
+msgstr "域名后缀（DomainSuffix）"
+
+msgid "Matches the domain itself and all subdomains, for example example.com and tracker.example.com."
+msgstr "匹配域名本身及全部子域名，例如 example.com 和 tracker.example.com。"
+
+msgid "Enter a domain name without a URL scheme, path or port."
+msgstr "请输入域名，不要包含 http://、路径或端口。"
+
+msgid "DomainKeyword"
+msgstr "域名关键词（DomainKeyword）"
+
+msgid "Case-insensitive substring matching anywhere in the domain name. Broad keywords can bypass unrelated domains."
+msgstr "匹配域名中任意位置的关键词，不区分大小写；过宽的关键词可能让其他域名也直连。"
+
+msgid "Use letters, digits, dots, underscores or hyphens."
+msgstr "仅支持字母、数字、点、下划线和连字符。"
+
+msgid "Direct domain DNS server"
+msgstr "域名直连 DNS 服务器"
+
+msgid "Direct domain status"
+msgstr "域名直连状态"
+
+msgid "Running; %d cached IPv4 addresses"
+msgstr "运行中；已缓存 %d 个 IPv4 地址"
+
+msgid "Disabled or no domain rules configured"
+msgstr "未启用或尚未填写域名规则"
+
+msgid "Router DNS bridge"
+msgstr "路由器 DNS 分流"
+
+msgid "Apple services"
+msgstr "苹果服务"
+
+msgid "Microsoft 365 services"
+msgstr "微软 Microsoft 365 服务"
+
+msgid "Direct Apple service IP ranges"
+msgstr "苹果服务 IP 段直连"
+
+msgid "Direct Microsoft service IP ranges (Microsoft 365)"
+msgstr "微软服务 IP 段直连（Microsoft 365）"
+
+msgid "Bypass the NAS for the IPv4 ranges in the Apple service list. Rules update daily. Existing manual IP and domain bypass rules remain independent when this switch is off."
+msgstr "苹果服务列表中的 IPv4 网段在路由器直连，不经过 NAS，每天自动更新。关闭此开关后，已有的手动 IP 和域名直连规则仍独立生效。"
+
+msgid "Use the official Microsoft 365 Worldwide and China IPv4 ranges for Office, Outlook, OneDrive and Teams. Rules update daily; this does not bypass all Azure or all Microsoft domains."
+msgstr "采用 Microsoft 365 全球及中国区官方 IPv4 网段，覆盖 Office、Outlook、OneDrive、Teams，路由器直接转发，每天自动更新；不整体放行 Azure 或全部微软域名。"
+
+msgid "Service IP rules"
+msgstr "服务 IP 规则状态"
+
+msgid "Update service IP rules"
+msgstr "更新服务 IP 规则"
+
+msgid "Update now"
+msgstr "立即更新"
+
+msgid "%d IPv4 ranges"
+msgstr "%d 个 IPv4 网段"
+
+msgid "Last verified"
+msgstr "上次校验"
+
+msgid "Bundled rules"
+msgstr "内置规则"
+
+msgid "Update failed; keeping the last valid rules"
+msgstr "更新失败，继续使用上次有效规则"
+
+msgid "Update requested. The status below refreshes automatically; existing rules remain active during download."
+msgstr "已请求更新，状态会自动刷新；下载期间继续使用现有规则。"
+
+msgid "Failed to start the update."
+msgstr "无法启动更新。"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "Fallback when the proxy device is unavailable"
+msgstr "分流设备失联时回退直连"
+
+msgid "Fallback when proxy internet access is unavailable"
+msgstr "代理节点不可用时回退直连"
+
+msgid "Restore direct routing and the original router DNS when the NAS, SOCKS service or required router DNS bridge is unavailable. Resume diversion automatically after recovery."
+msgstr "NAS、SOCKS 服务或必要的路由器 DNS 桥失联时，恢复直连及原始 DNS；恢复正常后自动重新分流。"
+
+msgid "Test HTTPS access through the proxy, using its current domain routing policies. If every probe URL fails repeatedly, restore direct routing. Direct fallback does not make blocked websites accessible."
+msgstr "通过代理检测 HTTPS 连通性，使用当前域名对应的策略组。所有检测地址连续失败时回退直连；直连后仍可能无法访问被屏蔽的网站。"
+
+msgid "Proxy SOCKS port"
+msgstr "代理 SOCKS 端口"
+
+msgid "Proxy internet probe URLs"
+msgstr "代理外网检测地址"
+
+msgid "Up to five HTTPS URLs. Any successful response keeps diversion active; all URLs must fail to count a failed round. These checks cover the policies used by these domains, not every proxy group."
+msgstr "最多五个 HTTPS 地址。任一地址成功即保持分流，全部失败才计为一轮失败。仅检测这些域名所用的策略组，不能代表所有策略组。"
+
+msgid "Use an HTTPS URL without credentials or whitespace."
+msgstr "请输入不含账号密码或空白字符的 HTTPS 地址。"
+
+msgid "Use up to five HTTPS probe URLs without credentials or whitespace."
+msgstr "最多填写五个不含账号密码或空白字符的 HTTPS 检测地址。"
+
+msgid "Health check interval (seconds)"
+msgstr "检测间隔（秒）"
+
+msgid "Probe timeout (seconds)"
+msgstr "单次检测超时（秒）"
+
+msgid "Consecutive failures before fallback"
+msgstr "连续失败多少次后回退"
+
+msgid "Consecutive successes before recovery"
+msgstr "连续成功多少次后恢复"
+
+msgid "Fallback status"
+msgstr "回退状态"
+
+msgid "Healthy"
+msgstr "检测正常"
+
+msgid "FlowProxy is stopped"
+msgstr "FlowProxy 已停止"
+
+msgid "Automatic fallback is disabled"
+msgstr "自动回退已关闭"
+
+msgid "Device check is failing; waiting for the failure threshold"
+msgstr "设备检测失败，尚未达到回退次数"
+
+msgid "Proxy internet check is failing; waiting for the failure threshold"
+msgstr "代理外网检测失败，尚未达到回退次数"
+
+msgid "Device unavailable; direct routing is active"
+msgstr "设备失联，已回退直连"
+
+msgid "Proxy internet unavailable; direct routing is active"
+msgstr "代理外网不可用，已回退直连"
+
+msgid "Device unavailable; device fallback is disabled"
+msgstr "设备失联，但设备回退开关已关闭"
+
+msgid "Waiting for health checks"
+msgstr "等待健康检测"
+
+msgid "Export configuration"
+msgstr "导出配置"
+
+msgid "Download backup"
+msgstr "下载配置备份"
+
+msgid "Export saved settings, ordered rules, device/IP/port lists, direct domains and referenced list files. Temporary DNS backups and connection caches are excluded."
+msgstr "导出已保存的设置、规则顺序、设备/IP/端口名单、直连域名及所引用的名单文件。不包含临时 DNS 备份与连接缓存。"
+
+msgid "Import configuration"
+msgstr "导入配置"
+
+msgid "Choose backup and import"
+msgstr "选择备份并导入"
+
+msgid "Import and apply"
+msgstr "导入并应用"
+
+msgid "Import replaces all saved FlowProxy settings, rules and lists, including its enable switch. Unsaved page changes will be discarded. Rules are validated first; an apply failure restores the previous configuration."
+msgstr "导入将替换全部已保存的 FlowProxy 设置、规则和名单，包括启用开关，并丢弃页面未保存的修改。先校验规则；应用失败时恢复原配置。"
+
+msgid "Choose a FlowProxy JSON backup smaller than 1 MiB."
+msgstr "请选择不超过 1 MiB 的 FlowProxy JSON 配置备份。"
+
+msgid "Unsupported FlowProxy backup format/version."
+msgstr "不支持此 FlowProxy 备份格式或版本。"
+
+msgid "Validating and applying configuration..."
+msgstr "正在校验并应用配置……"
+
+msgid "Uploading configuration: %d%%"
+msgstr "正在上传配置：%d%%"
+
+msgid "Configuration export failed."
+msgstr "导出配置失败。"
+
+msgid "Configuration import failed."
+msgstr "导入配置失败。"
+
+msgid "Configuration imported and applied successfully."
+msgstr "配置已导入并成功应用。"
+
+msgid "Unable to read the backup file."
+msgstr "无法读取备份文件。"
+
+msgid "Import is still running. Check the service status before retrying."
+msgstr "导入仍在进行，请检查服务状态后再重试。"
+
+msgid "Imported rules"
+msgstr "导入的规则"
