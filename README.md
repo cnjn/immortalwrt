@@ -6,7 +6,7 @@
 [v25.12.1](https://github.com/immortalwrt/immortalwrt/releases/tag/v25.12.1) 版本进行适配，
 专用于 **ZTE SR1010（ZX279133 SoC）**。
 
-在此，大力感谢 ![@fxfall](https://github.com/fxfall) 提交的一系列PR，帮助此项目进一步完善了星云max的openwrt固件
+在此，大力感谢 [@fxfall](https://github.com/fxfall) 提交的一系列PR，帮助此项目进一步完善了星云max的openwrt固件
 
 生成的是**原厂升级包格式**的可刷写镜像：同一个 `.bin` 既能在原厂网页、LuCI
 “备份/升级固件”页面或 `zte-fwslot` 里安装，路由器里的原厂系统和 ImmortalWrt
