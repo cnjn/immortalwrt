@@ -5,22 +5,31 @@ include $(TOPDIR)/rules.mk
 BOARD:=zte
 BOARDNAME:=ZTE SoCs
 SUBTARGETS:=zx279133
-FEATURES:=dt gpio ramdisk cpiogz usb
-KERNEL_PATCHVER:=6.18
+FEATURES:=dt gpio ramdisk cpiogz squashfs usb
+KERNEL_PATCHVER:=7.3
 
-ifeq ($(DUMP),)
-  ifeq ($(strip $(CONFIG_EXTERNAL_KERNEL_TREE)),)
-    $(error The ZTE target requires CONFIG_EXTERNAL_KERNEL_TREE pointing to the prepared ZX279133 kernel)
-  endif
-endif
-
-# The first SR1010 image is intentionally a small RAM-boot environment.
 DEVICE_TYPE:=basic
 
 include $(INCLUDE_DIR)/target.mk
+include $(TOPDIR)/target/linux/zte/sr1010.mk
+
+ifneq ($(DUMP),1)
+  ifneq ($(call qstrip,$(CONFIG_EXTERNAL_KERNEL_TREE))$(call qstrip,$(CONFIG_KERNEL_GIT_CLONE_URI)),)
+    $(error The ZTE target uses its Linux 7.3.1 patch series. Clear CONFIG_EXTERNAL_KERNEL_TREE and CONFIG_KERNEL_GIT_CLONE_URI)
+  endif
+endif
+
+KERNEL_FILE_DEPENDS += $(SR1010_FIRMWARE_DIR)/zx279133-npu.bin
+
+define Kernel/Prepare
+	$(call Kernel/Prepare/Default)
+	$(INSTALL_DIR) $(LINUX_DIR)/firmware/zte/zx279133
+	$(CP) $(SR1010_FIRMWARE_DIR)/zx279133-npu.bin \
+		$(LINUX_DIR)/firmware/zte/zx279133/mcode_intel.bin
+endef
 
 define Target/Description
-	Build RAM-boot images for supported ZTE SoCs.
+	Build images for the ZTE ZX279133 SoC family.
 endef
 
 $(eval $(call BuildTarget))

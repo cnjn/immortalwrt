@@ -1,0 +1,12 @@
+#!/bin/sh
+# Preserve existing settings; do not silently enable remote-node fallback.
+for item in device_fallback_enabled:1 node_fallback_enabled:0 health_socks_port:7890 health_interval:5 health_timeout:5 health_failures:3 health_successes:2; do
+    key=${item%:*}; value=${item#*:}
+    uci -q get "flowproxy.global.$key" >/dev/null || uci set "flowproxy.global.$key=$value"
+done
+uci -q get flowproxy.global.node_probe_url >/dev/null || \
+    uci add_list flowproxy.global.node_probe_url='https://www.youtube.com/generate_204'
+uci commit flowproxy
+/etc/init.d/flowproxy-guard enable
+/etc/init.d/flowproxy-guard restart
+exit 0

@@ -132,7 +132,7 @@ log_once() {
 has_handler() {
 	local file
 
-	for file in /etc/hotplug.d/dhcp/* /etc/hotplug.d/tftp/* /etc/hotplug.d/neigh/*; do
+	for file in "$@"; do
 		[ -f "$file" ] && return 0
 	done
 
@@ -357,6 +357,11 @@ dhcp_host_add() {
 	[ "$enable" = "0" ] && return 0
 
 	config_get name "$cfg" name
+	# Keep UTF-8 UCI names as display aliases; dnsmasq requires ASCII names.
+	# MAC/DUID still identifies the reservation; do not emit an invalid host name.
+	case "$name" in
+		*[!\ -~]*) name="" ;;
+	esac
 	config_get ip "$cfg" ip
 	config_get hostid "$cfg" hostid
 
@@ -1095,9 +1100,14 @@ dnsmasq_start()
 	fi
 
 	config_get user_dhcpscript $cfg dhcpscript
-	if has_handler || [ -n "$user_dhcpscript" ]; then
+	if has_handler /etc/hotplug.d/dhcp/* /etc/hotplug.d/tftp/* /etc/hotplug.d/neigh/* ||
+	   [ -n "$user_dhcpscript" ]; then
 		xappend "--dhcp-script=$DHCPSCRIPT"
-		xappend "--script-arp"
+		# A lease-only handler on SR1010 does not need per-neighbor callbacks.
+		if [ "$(board_name)" != "zte,zx279133-sr1010" ] ||
+		   [ -n "$user_dhcpscript" ] || has_handler /etc/hotplug.d/neigh/*; then
+			xappend "--script-arp"
+		fi
 	fi
 
 	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"

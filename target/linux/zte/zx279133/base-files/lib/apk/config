@@ -1,0 +1,3 @@
+# SR1010: permit locally built and third-party APK packages by default.
+# Override with /etc/apk/config or APK_CONFIG=/dev/null for strict trust checks.
+allow-untrusted

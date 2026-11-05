@@ -199,6 +199,11 @@ DTC_WARN_FLAGS := \
   -Wno-graph_child_address \
   -Wno-simple_bus_reg
 
+# The 7.3 bundled dtc removed this obsolete graph check.
+ifeq ($(BOARD):$(KERNEL_PATCHVER),zte:7.3)
+  DTC_WARN_FLAGS := $(filter-out -Wno-graph_child_address,$(DTC_WARN_FLAGS))
+endif
+
 DTC_FLAGS += $(DTC_WARN_FLAGS)
 DTCO_FLAGS += $(DTC_WARN_FLAGS)
 

@@ -1,0 +1,54 @@
+--- a/src/nf_nat_fullcone.c
++++ b/src/nf_nat_fullcone.c
+@@ -697,6 +697,14 @@
+ 			ct = nf_ct_tuplehash_to_ctrack(tuple_hash);
+ 			if (likely(ct != NULL))
+ 				nf_ct_put(ct);
++			/* One live tuple proves the mapping is in use. Rotate it
++			 * behind unchecked members so missed DESTROY events are
++			 * collected by later lookups, without scanning every live
++			 * BT peer while holding the global NAT lock.
++			 */
++			list_move_tail(&original_tuple_item->node,
++				       &mapping->original_tuple_list);
++			return 1;
+ 		}
+ 
+ 	}
+@@ -751,6 +759,14 @@
+ 			ct = nf_ct_tuplehash_to_ctrack(tuple_hash);
+ 			if (likely(ct != NULL))
+ 				nf_ct_put(ct);
++			/* One live tuple proves the mapping is in use. Rotate it
++			 * behind unchecked members so missed DESTROY events are
++			 * collected by later lookups, without scanning every live
++			 * BT peer while holding the global NAT lock.
++			 */
++			list_move_tail(&original_tuple_item->node,
++				       &mapping->original_tuple_list);
++			return 1;
+ 		}
+ 
+ 	}
+@@ -782,8 +798,8 @@
+ 	struct hlist_node *tmp;
+ 
+ 	hash_for_each_possible_safe(mapping6_table_by_ext_port, p_current, tmp, node_by_ext_port, port) {
+-		if (p_current->port == port && check_mapping6(p_current, net, zone)
+-		    && nf_inet_addr_cmp(&p_current->addr, ext_ip)) {
++		if (p_current->port == port && nf_inet_addr_cmp(&p_current->addr, ext_ip)
++		    && check_mapping6(p_current, net, zone)) {
+ 			return p_current;
+ 		}
+ 	}
+@@ -805,8 +821,8 @@
+ 	struct hlist_node *tmp;
+ 
+ 	hash_for_each_possible_safe(mapping_table_by_ext_port, p_current, tmp, node_by_ext_port, port) {
+-		if (p_current->port == port && check_mapping(p_current, net, zone)
+-		    && p_current->addr == ext_ip) {
++		if (p_current->port == port && p_current->addr == ext_ip
++		    && check_mapping(p_current, net, zone)) {
+ 			return p_current;
+ 		}
+ 	}

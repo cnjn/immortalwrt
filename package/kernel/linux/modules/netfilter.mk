@@ -54,7 +54,7 @@ $(eval $(call KernelPackage,nf-conncount))
 define KernelPackage/nf-ipt
   SUBMENU:=$(NF_MENU)
   TITLE:=Iptables core
-  KCONFIG:=$(KCONFIG_NF_IPT)
+  KCONFIG:=$(KCONFIG_NF_IPT) CONFIG_NETFILTER_XTABLES_LEGACY=y@ge7.3 CONFIG_IP_NF_IPTABLES_LEGACY@ge7.3
   FILES:=$(foreach mod,$(NF_IPT-m),$(LINUX_DIR)/net/$(mod).ko)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NF_IPT-m)))
 endef
@@ -65,7 +65,7 @@ $(eval $(call KernelPackage,nf-ipt))
 define KernelPackage/nf-ipt6
   SUBMENU:=$(NF_MENU)
   TITLE:=Ip6tables core
-  KCONFIG:=$(KCONFIG_NF_IPT6)
+  KCONFIG:=$(KCONFIG_NF_IPT6) CONFIG_IP6_NF_IPTABLES_LEGACY@ge7.3
   FILES:=$(foreach mod,$(NF_IPT6-m),$(LINUX_DIR)/net/$(mod).ko)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NF_IPT6-m)))
   DEPENDS:=+kmod-nf-ipt +kmod-nf-log6
@@ -202,7 +202,7 @@ define KernelPackage/nf-flow
 	CONFIG_NETFILTER_INGRESS=y \
 	CONFIG_NF_FLOW_TABLE \
 	CONFIG_NF_FLOW_TABLE_HW
-  DEPENDS:=+kmod-nf-conntrack
+  DEPENDS:=+kmod-nf-conntrack +LINUX_7_3:kmod-nft-core
   FILES:= $(LINUX_DIR)/net/netfilter/nf_flow_table.ko
   AUTOLOAD:=$(call AutoProbe,nf_flow_table nf_flow_table_hw)
 endef
@@ -1089,7 +1089,7 @@ define KernelPackage/ebtables
   TITLE:=Bridge firewalling modules
   DEPENDS:=+kmod-ipt-core
   FILES:=$(foreach mod,$(EBTABLES-m),$(LINUX_DIR)/net/$(mod).ko)
-  KCONFIG:=$(KCONFIG_EBTABLES)
+  KCONFIG:=$(KCONFIG_EBTABLES) CONFIG_BRIDGE_NF_EBTABLES_LEGACY@ge7.3
   AUTOLOAD:=$(call AutoProbe,$(notdir $(EBTABLES-m)))
 endef
 
@@ -1161,7 +1161,7 @@ define KernelPackage/nfnetlink
   SUBMENU:=$(NF_MENU)
   TITLE:=Netlink-based userspace interface
   FILES:=$(foreach mod,$(NFNETLINK-m),$(LINUX_DIR)/net/$(mod).ko)
-  KCONFIG:=$(KCONFIG_NFNETLINK)
+  KCONFIG:=$(KCONFIG_NFNETLINK) CONFIG_NETFILTER_NETLINK=y@ge7.3
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NFNETLINK-m)))
 endef
 

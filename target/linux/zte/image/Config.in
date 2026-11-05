@@ -6,14 +6,11 @@ config KERNEL_DEVTMPFS
 config KERNEL_DEVTMPFS_MOUNT
 	default y
 
-config SR1010_VENDOR_TEMPLATE
-	string "SR1010 vendor upgrade package template (.bin)"
-	depends on TARGET_zte_zx279133
-	default ""
+config KERNEL_ZTE_ZX279133_NATIVE_DEBUG
+	bool "SR1010 native NPU diagnostics"
+	depends on TARGET_zte_zx279133 && KERNEL_DEBUG_FS
+	default y if PACKAGE_npu-debug
 	help
-	  Absolute path to a ZXSLC SR1010 vendor upgrade package. Its U-Boot and
-	  version header are reused when building the flashable vendor-format
-	  image. Leave empty to build only the RAM initramfs image. The vendor
-	  package is not shipped in this tree.
+	  Enable the native debugfs backend for the npu-debug tools.
 
 endif

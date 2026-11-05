@@ -164,6 +164,8 @@ define Build/InstallDev
 endef
 
 define Host/Install
+	# Remove the previous alias so CMake installs a regular file before mv.
+	rm -f $(1)/bin/xml2-config
 	$(call Host/Install/Default)
 	mv $(1)/bin/xml2-config $(1)/bin/$(GNU_HOST_NAME)-xml2-config
 	$(LN) $(GNU_HOST_NAME)-xml2-config $(1)/bin/xml2-config

@@ -1,0 +1,58 @@
+#!/bin/sh
+# Convert the removed allow-list to the original bypass lists once on upgrade.
+set -eu
+task_tmp=$(mktemp -d /tmp/flowproxy-ports.XXXXXX)
+trap 'rm -rf "$task_tmp"' EXIT
+
+if [ "$(uci -q get flowproxy.global.port_whitelist_enabled || echo 0)" = 1 ]; then
+    # Validate both protocols before staging any changes. Empty allow-list means
+    # all ports bypass; all ports allowed means an empty bypass set.
+    for proto in tcp udp; do
+        values=$(uci -q get "flowproxy.global.${proto}_proxy_ports" || true)
+        printf '%s\n' "$values" | tr ' ' '\n' | awk '
+            NF {
+                if ($0 !~ /^[0-9]+(-[0-9]+)?$/) { bad=1; exit 1 }
+                n=split($0,a,"-"); lo=a[1]+0; hi=(n==2?a[2]+0:lo)
+                if(lo<1 || hi>65535 || hi<lo) { bad=1; exit 1 }
+                for(i=lo;i<=hi;i++) allowed[i]=1
+            }
+            END {
+                if(bad) exit 1
+                for(i=1;i<=65535;i++) if(!allowed[i]) {
+                    lo=i; while(i<65535 && !allowed[i+1]) i++
+                    if(lo==i) print lo; else printf "%d-%d\n",lo,i
+                }
+            }' > "$task_tmp/$proto" || exit 1
+    done
+    for proto in tcp udp; do
+        set_name="no_proxy_dst_${proto}_ports"
+        uci set "flowproxy.$set_name=nftset"
+        uci set "flowproxy.$set_name.enabled=1"
+        uci set "flowproxy.$set_name.type=inet_service"
+        uci -q delete "flowproxy.$set_name.elements" || true
+        while IFS= read -r value; do
+            uci add_list "flowproxy.$set_name.elements=$value"
+        done < "$task_tmp/$proto"
+        found=0
+        for section in $(uci -q show flowproxy | sed -n "s/^flowproxy\.\([^=]*\)=${proto}_rule$/\1/p"); do
+            [ "$(uci -q get "flowproxy.$section.match_type" || true)" = dst_port ] || continue
+            [ "$(uci -q get "flowproxy.$section.match_value" || true)" = "@$set_name" ] || continue
+            uci set "flowproxy.$section.enabled=1"
+            uci set "flowproxy.$section.action=return"
+            found=1
+        done
+        if [ "$found" = 0 ]; then
+            section=$(uci add flowproxy "${proto}_rule")
+            uci set "flowproxy.$section.enabled=1"
+            uci set "flowproxy.$section.match_type=dst_port"
+            uci set "flowproxy.$section.match_value=@$set_name"
+            uci set "flowproxy.$section.action=return"
+            uci set "flowproxy.$section.counter=1"
+        fi
+    done
+fi
+for key in port_whitelist_enabled tcp_proxy_ports udp_proxy_ports; do
+    uci -q delete "flowproxy.global.$key" || true
+done
+uci commit flowproxy
+exit 0

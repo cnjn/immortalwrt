@@ -1,11 +1,13 @@
 #!/bin/sh
-# Make Bootstrap the default LuCI theme, once. The theme packages' own scripts
-# (30_luci-theme-*) run first, and Argon's makes itself the default on a fresh
-# configuration. The marker keeps a theme picked later in LuCI across upgrades.
-
-uci -q get luci.main.zx279133_theme >/dev/null && exit 0
-uci -q get luci.themes.Bootstrap >/dev/null &&
-	uci -q set luci.main.mediaurlbase=/luci-static/bootstrap
-uci -q set luci.main.zx279133_theme=1
+# Fresh installs use Design. Migrate the previous board-default Bootstrap once,
+# while preserving another theme selected by the user across upgrades.
+marker="$(uci -q get luci.main.zx279133_theme)"
+[ "$marker" = design-v1 ] && exit 0
+uci -q get luci.themes.Design >/dev/null || exit 0
+current="$(uci -q get luci.main.mediaurlbase)"
+if [ -z "$marker" ] || { [ "$marker" = 1 ] && [ "$current" = /luci-static/bootstrap ]; }; then
+	uci -q set luci.main.mediaurlbase=/luci-static/design
+fi
+uci -q set luci.main.zx279133_theme=design-v1
 uci -q commit luci
 exit 0

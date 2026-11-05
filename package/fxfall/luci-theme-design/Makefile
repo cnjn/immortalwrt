@@ -1,0 +1,19 @@
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+
+include $(TOPDIR)/rules.mk
+
+LUCI_TITLE:=Design Theme
+LUCI_DEPENDS:=
+PKG_LICENSE:=Apache-2.0
+PKG_VERSION:=7.1
+PKG_RELEASE:=20261015
+
+LUCI_MINIFY_CSS:=
+CONFIG_LUCI_CSSTIDY:=
+
+include $(TOPDIR)/feeds/luci/luci.mk
+
+# call BuildPackage - OpenWrt buildroot signature

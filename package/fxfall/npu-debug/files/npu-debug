@@ -1,0 +1,189 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# One transaction per invocation; no daemon, interval or temporary data files.
+set -f
+
+usage() {
+	cat <<'EOF'
+Usage: npu-debug [--device NAME] [--write] info|get|save|set TARGET [ARGS...]
+       npu-debug --mount                 Mount debugfs if needed
+
+Read/save commands:
+  info                                  capabilities bit7 / vid_key_active indicate R17 layout
+  get profile ID                        cir,eir,cbs,ebs,cd_mode,cf,cm,pkt_sign
+  get binding FLOW_ID                   profile,enabled
+  get timing                            time_count,packet_length,offset,loose
+  get global                            fill_time,shaping,dwrr
+  get mode PORT QUEUE                    native mode_bit
+  get weight PORT QUEUE                  native weight
+  get queue PORT QUEUE                   fill,cap,enabled
+  get port PORT                          fill,cap,enabled
+  get red-buffer INDEX                   max_space,yellow_p0,p1,green_p0,p1,
+                                         yellow_th0,th1,green_th0,th1 (9 raw values)
+  get red-usage INDEX                    input_shared,output_shared,buffer_raw,
+                                         input_self,output_self (5 raw occupancy fields)
+                                         RED RAM index 0..400, NOT SSCH/Linux queue
+                                         manual indirect access; no background polling
+                                         space/probability units and port mapping unverified
+                                         red-buffer set verifies readback and rolls back on failure
+                                         rc=-117 means restoration could not be verified
+  get vlan VID                           words0..3
+  get vlan-mode VID PORT                 mode
+  get pvid SPA_MEM                       vid,priority
+  get invlan NP_PORT                     enabled
+  get frame-limits                      global L2, SPA length filters, raw XMAC/SDET;
+                                         on demand, no capture arming or table-data writes
+                                         serialized indirect reads restore auto-gating
+                                         component errors are explicit; no automatic repair
+  get ppu-me-stats                       ME0..7 raw MF VALID/SOP/EOP counters;
+                                         ready_raw/grant_raw per ME and raw cluster pairs;
+                                         active/grant/bank count enables and statistics clocks
+                                         on-demand shared 3s cache, no worker/control writes
+                                         ready/grant units unverified; not_idle instantaneous
+                                         no busy-cycle or load % calculation; no auto enable
+                                         split low/high snapshot; read-clear semantics unverified
+  get ppu-context ME                     0..7, passive/non-atomic 129-word snapshot
+  --write set ppu-vid-probe              temporary PC139 VID extraction, captures before PC142
+                                         restores both SRAM blocks; no persistent mode
+  --write set ppu-capture PC             fixed MAC/fast query sites and IPv4 constructor PC 133..142, 100ms wait limit
+                                         saves/unmasks/restores ME interrupt mask, reads query bank,
+                                         restores SRAM and resumes owned MEs
+
+fnoffload diagnostics (cached unless 'live' is explicitly requested):
+  client-limits                         cached MAC policies; programmed != effect verified
+  --write client-set MAC UP DOWN [CBS_BYTES]
+                                         shared source/destination MAC policers, bytes/s
+                                         omitted/0 CBS_BYTES uses OEM rate-derived CBS per direction
+                                         nonzero CBS_BYTES overrides it (range 16384..134217727)
+                                         client-limits reports upload_cbs_raw/download_cbs_raw
+                                         reprograms the managed MAC lease; 0 rate clears policy
+  summary                               resource occupancy and states
+  flows [START LIMIT]                    paginated cookies, default 0 16
+  flow COOKIE [live]                     mapping/encoding; live reads counters
+  explain COOKIE                        mapping plus captured rule/rejection
+  watch COOKIE|all [SECONDS [BUDGET]]     bounded events, default 30s/16 entries
+  events                                recorded events, no hardware reads
+  trace-off                             stop recording, keep recorded events
+
+Writes: --write set TARGET KEYS... VALUES... (same order as above).
+Example: npu-debug save weight 0 0 > /tmp/sr1010-cpufreq/restore-weight.sh
+         npu-debug --write set weight 0 0 256
+         sh /tmp/sr1010-cpufreq/restore-weight.sh
+
+save performs only a GET and prints an explicit restore command to stdout.
+Values are native hardware fields, NOT bit/s or guessed Linux port numbers.
+Profile replacement affects every bound flow. A failed write can be partial.
+Readback does not prove packet classification, isolation or rate enforcement.
+EOF
+}
+
+device=
+allow_write=0
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--device)
+			[ "$#" -ge 2 ] || { usage >&2; exit 2; }
+			device=$2
+			case "$device" in ''|*[!a-zA-Z0-9._:-]*) echo 'Invalid device name' >&2; exit 2;; esac
+			shift 2;;
+		--write) allow_write=1; shift;;
+		--mount)
+			[ "$#" -eq 1 ] || { usage >&2; exit 2; }
+			[ "$(id -u)" -eq 0 ] || { echo 'Root required' >&2; exit 1; }
+			if ! awk '$2 == "/sys/kernel/debug" && $3 == "debugfs" { found=1 } END { exit !found }' /proc/mounts; then
+				mount -t debugfs debugfs /sys/kernel/debug || exit 1
+			fi
+			exit 0;;
+		-h|--help) usage; exit 0;;
+		*) break;;
+	esac
+done
+[ "$#" -gt 0 ] || { usage >&2; exit 2; }
+operation=$1
+shift
+diag=0
+case "$operation" in
+	info) [ "$#" -eq 0 ] || { usage >&2; exit 2; };;
+	get|save) [ "$#" -ge 1 ] || { usage >&2; exit 2; };;
+	set)
+		[ "$allow_write" -eq 1 ] || { echo 'Use --write for an explicit hardware change' >&2; exit 2; }
+		[ "$#" -ge 1 ] || { usage >&2; exit 2; };;
+	summary|events|trace-off|client-limits)
+		diag=1
+		[ "$#" -eq 0 ] || { usage >&2; exit 2; };;
+	client-set)
+		diag=1
+		[ "$allow_write" -eq 1 ] && { [ "$#" -eq 3 ] || [ "$#" -eq 4 ]; } || { usage >&2; exit 2; };;
+	flows)
+		diag=1
+		[ "$#" -ne 0 ] || set -- 0 16
+		[ "$#" -eq 2 ] || { usage >&2; exit 2; };;
+	flow|explain)
+		diag=1
+		[ "$#" -ge 1 ] && [ "$#" -le 2 ] || { usage >&2; exit 2; };;
+	watch)
+		diag=1
+		[ "$#" -ge 1 ] && [ "$#" -le 3 ] || { usage >&2; exit 2; };;
+	*) usage >&2; exit 2;;
+esac
+# Keep one invocation to one bounded request; no token may contain whitespace.
+[ "$#" -le 11 ] || { echo 'Too many arguments' >&2; exit 2; }
+for arg in "$@"; do
+	case "$arg" in ''|*[!a-zA-Z0-9:-]*) echo 'Invalid request argument' >&2; exit 2;; esac
+done
+[ "$(id -u)" -eq 0 ] || { echo 'Root required' >&2; exit 1; }
+path=
+if [ -n "$device" ]; then
+	path="/sys/kernel/debug/zte-npu-$device/native"
+else
+	set +f
+	for candidate in /sys/kernel/debug/zte-npu-*/native; do
+		[ -f "$candidate" ] || continue
+		[ -z "$path" ] || { echo 'Multiple NP devices; use --device NAME' >&2; exit 1; }
+		path=$candidate
+	done
+	set -f
+fi
+[ -n "$path" ] && [ -f "$path" ] || {
+	echo 'Native endpoint missing: run npu-debug --mount and check CONFIG_ZTE_ZX279133_NATIVE_DEBUG=y' >&2
+	exit 1
+}
+device=${path%/native}
+device=${device##*/zte-npu-}
+if [ "$diag" -eq 1 ]; then
+	path="/sys/kernel/debug/zte-fnoffload-$device/control"
+	[ -f "$path" ] || { echo 'fnoffload debug endpoint missing; check the new module is loaded' >&2; exit 1; }
+fi
+request=$operation
+[ "$request" != save ] || request=get
+for arg in "$@"; do request="$request $arg"; done
+# The response belongs to this open fd; separate echo/cat opens are incorrect.
+exec 3<> "$path" || exit 1
+# BusyBox may flush the final newline as a second write. Each write is a
+# separate kernel transaction, so send the bounded request without a newline.
+printf '%s' "$request" >&3 || exit 1
+response=$(cat <&3) || { echo 'No debug response' >&2; exit 1; }
+exec 3>&-
+case "$response" in
+	rc=0\ *) ;;
+	*) printf '%s\n' "$response" >&2; exit 1;;
+esac
+if [ "$operation" = save ]; then
+	values=
+	restorable=0
+	for field in $response; do
+		case "$field" in
+			values=*) values=${field#values=};;
+			restore_supported=1) restorable=1;;
+		esac
+	done
+	[ "$restorable" -eq 1 ] || { echo 'Current fields cannot be restored through this API; leave this resource unchanged' >&2; exit 1; }
+	[ -n "$values" ] || { echo 'Response has no restorable fields' >&2; exit 1; }
+	[ "$1" != timing ] || { echo 'Timing is read-only' >&2; exit 2; }
+	printf '# Native configuration only; token/packet state is not restored.\n'
+	printf 'npu-debug --device %s --write set' "$device"
+	for arg in "$@"; do printf ' %s' "$arg"; done
+	printf ' %s\n' "$(printf '%s' "$values" | tr ',' ' ')"
+else
+	printf '%s\n' "$response"
+fi
