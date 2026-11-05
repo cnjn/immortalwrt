@@ -20,49 +20,17 @@
 - 组播：omcproxy（IGMPv3/MLDv2，IPv4 和 IPv6），mcfast 用 eBPF 在入口直接转发已路由的组播流（PPPoE 下约 700 Mbit/s）
 - 存储共享：USB 盘通过 ksmbd（SMB）共享，`wsdd2` 让 Windows 的“网络”里能看到路由器
 - Mesh：内置 ZTE mesh 控制器（zte-mesh），中兴 mesh 子路由可以通过有线回程加入；默认启用，下发给子路由的 Wi-Fi 默认名称 `ImmortalWrt`、密码 `00000000`，在 LuCI“网络 → 中兴组网”里修改
-- 容器：LXC（含 LuCI 管理页，开机自启 `lxc-auto`）；容器根文件系统放 USB 盘
 - 覆盖层放在 `Plugin` 分区的 `.owrt` 子目录，与原厂文件共存，恢复出厂不会删除原厂文件
 - 固件更新：每天检查一次本仓库的 GitHub 发布，有新固件时在概览页提醒，在“系统 → 固件更新”里一键下载、校验并升级；可以关闭自动检查
 - 另提供只在内存中运行的 FIT initramfs 镜像，用于调试
-
-详细说明见 [target/linux/zte/README.md](target/linux/zte/README.md)。
 
 > 本仓库是面向 SR1010 的设备适配分支，不是 ImmortalWrt 官方仓库。
 > ImmortalWrt 的通用文档、软件包和其他设备支持请参考
 > [ImmortalWrt 原项目](https://github.com/immortalwrt/immortalwrt)。
 
 ## 获取源码
+git clone --branch master https://github.com/cnjn/immortalwrt
 
-构建需要本仓库和准备好的 ZX279133 Linux 内核仓库：
-
-- ImmortalWrt 适配仓库：<https://github.com/fxfall/immortalwrt>
-- Linux 内核仓库：<https://github.com/fxfall/linux-mainline-zte-zxslc-sr1010>
-
-建议将两个仓库克隆到同一目录下：
-
-```sh
-mkdir sr1010-build
-cd sr1010-build
-
-git clone --branch linux-7.3 \
-  https://github.com/fxfall/linux-mainline-zte-zxslc-sr1010.git \
-  linux-mainline-zte-zxslc-sr1010/linux-7.3
-
-git clone --branch linux-7.3 \
-  https://github.com/fxfall/immortalwrt.git
-```
-
-目录结构应为：
-
-```text
-sr1010-build/
-├── immortalwrt/
-└── linux-mainline-zte-zxslc-sr1010/
-    └── linux-7.3/
-```
-
-`linux-7.3` 分支直接包含内核源码，克隆时请保留上面的两级目录，
-以便构建脚本找到内核和微码。上游适配来源为 [cnjn 的内核仓库](https://github.com/cnjn/linux-mainline-zte-zxslc-sr1010) 和 [ImmortalWrt 仓库](https://github.com/cnjn/immortalwrt)。
 
 ## 编译
 
@@ -70,68 +38,21 @@ sr1010-build/
 安装当前 Linux 发行版所需的编译依赖，然后执行：
 
 ```sh
-cd sr1010-build/immortalwrt
+cd immortalwrt
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
-SR1010_VENDOR_TEMPLATE=/绝对路径/原厂升级包.bin \
-  ./scripts/configure-sr1010-flash.sh
 make -j$(nproc)
-```
 
-原厂升级包（需要 `V1.0.0.2B7.8000`）不在本仓库中，构建时取其中的 U-Boot 和版本头。
 dae 的 eBPF 程序由主机上的 `clang` 编译，需要先安装带 BPF 目标的 clang 和 LLVM。
 
-配置脚本默认使用相邻目录中的内核：
-
-```text
-../linux-mainline-zte-zxslc-sr1010/linux-7.3
-```
-
-如果内核位于其他位置，可以显式指定绝对路径：
-
-```sh
-KERNEL_TREE=/absolute/path/to/linux-7.3 \
-  SR1010_VENDOR_TEMPLATE=/绝对路径/原厂升级包.bin \
-  ./scripts/configure-sr1010-flash.sh
-
-make -j$(nproc)
-```
-
-内核目录必须是 `<目录>/linux-mainline-zte-zxslc-sr1010/linux-7.3`，
-与 `<目录>/immortalwrt` 并列，脚本会检查。
-
-编译产物位于 `bin/targets/zte/zx279133/`：
+编译产物位于 `bin/targets/zte/zx279133 已经解除原厂 U-Boot 对内核约 8 MiB 的限制。
 
 ```text
 immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade.bin
-immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade-stock-uboot.bin
-```
 
-默认使用第一个：它带一处 U-Boot 补丁，解除原厂 U-Boot 对内核约 8 MiB 的限制。
-第二个保持原厂 U-Boot 不变，只有内核 FIT 小于约 8 MB 时才能启动。
-镜像放不进固件槽时，打包脚本会报错并停止。
 
-## 发布固件
-
-固件报告的版本号来自 git：`r<提交数>-<提交 id>`，例如 `r38035-d301503f3e`。
-路由器上的固件更新按这个版本号判断有没有新版本，提交数越大越新；
-GitHub 发布的 tag 和标题可以随便起。
-
-```sh
-git commit ...
-git push
-./scripts/release-sr1010.sh
-```
-
-脚本要求工作区没有未提交的修改、分支已经 push（否则版本号里的提交 id
-指向最后一次 push 的提交），编译后检查根文件系统里的版本号，再把镜像复制成
-`bin/release/sr1010-owrt-<版本号>.bin`。把这个文件上传到一个新的 GitHub 发布即可，
-**文件名不要改**：路由器从文件名里读版本号，并按 GitHub 给出的 SHA-256 校验下载的镜像。
-
-合并 ImmortalWrt 上游的新版本后，如果根目录又出现了 `version` 和 `version.date`
-（上游用它们固定版本号），要再删掉，脚本会提示。
 
 ## 刷机与切换
 
@@ -142,7 +63,6 @@ git push
 - 从原厂系统回到 ImmortalWrt：在原厂网页里再刷一次镜像。**不要用原厂的 `fw_flashing -v switch`**：
   它就地改写另一个槽的版本头而不先擦除，NAND 只能把位从 1 变 0，写进去的是新旧字节按位与的结果，
   序号不会变大、CRC2 也会错，工具却报告成功。已在实机上验证，预测的字节与实测一致。
-  详细说明和实测数据见 [target/linux/zte/docs/vendor-slots.md](target/linux/zte/docs/vendor-slots.md)。
 - LuCI“系统 → 固件更新”：路由器每天检查一次本仓库的 GitHub 发布（开机几分钟后先查一次），
   有新固件时概览页最上面会出现提醒，可以选择不再提醒这个版本。确认后下载镜像、
   按 GitHub 公布的 SHA-256 校验，再用 `sysupgrade` 安装。页面里可以关闭自动检查，
@@ -151,7 +71,7 @@ git push
 
 ## 默认设置
 
-- LAN 地址：<http://192.168.5.1/>，用户名 `root`，默认密码为空
+- LAN 地址：<http://192.168.1.1/>，用户名 `root`，默认密码为空
 - 状态灯：WAN 能上网时为白色，否则为红色；插口旁的五个灯跟随各自端口的连接状态
 
 ## 网络性能
@@ -167,12 +87,6 @@ git push
 ## 内存启动（initramfs）
 
 调试时可以改用只在内存中运行的镜像，它不会改动闪存：
-
-```sh
-./scripts/configure-sr1010-initramfs.sh
-make -j$(nproc)
-```
-
 产物是 `bin/targets/zte/zx279133/immortalwrt-zte-zx279133-zte_zxslc-sr1010-initramfs.itb`。
 
 不要将 ITB 加载到 `0x82000000`，该地址可能与展开后的内核重叠。建议使用：

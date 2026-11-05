@@ -126,13 +126,21 @@ service_triggers() {
 	LINKS=""
 
 	procd_add_reload_trigger "omcproxy"
+	config_load omcproxy
+	local enabled
+	config_get_bool enabled main enabled 0
+	[ "$enabled" = 1 ] || return 0
 	config_foreach omcproxy_add_network_triggers proxy
 }
 
 start_service() {
-	. /lib/functions/network.sh
-
+	local enabled
+	PROXIES=""
 	config_load omcproxy
+	config_get_bool enabled main enabled 0
+	[ "$enabled" = 1 ] || return 0
+
+	. /lib/functions/network.sh
 
 	config_foreach omcproxy_add_proxy proxy
 	[ -n "$PROXIES" ] || return 0

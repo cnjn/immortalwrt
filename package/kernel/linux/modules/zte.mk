@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # ZX279133 clocks, PHYs, XPCS and DSA core are provided by the ZTE target.
-PKG_CONFIG_DEPENDS += CONFIG_ZTE_NPU_EXPERIMENTAL_VID_KEY
+PKG_CONFIG_DEPENDS += CONFIG_ZTE_NPU_VLAN_OFFLOAD
 
 define KernelPackage/zte-npu
   SUBMENU:=Network Devices
@@ -11,7 +11,7 @@ define KernelPackage/zte-npu
 	CONFIG_ZTE_ZX279133_NATIVE_DEBUG=y
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/zte/npu.ko \
 	$(LINUX_DIR)/drivers/net/ethernet/zte/zx279133-lan-conduit.ko
-  MODPARAMS.npu:=$(if $(CONFIG_ZTE_NPU_EXPERIMENTAL_VID_KEY),experimental_vid_key=1)
+  MODPARAMS.npu:=vlan_offload=$(if $(CONFIG_ZTE_NPU_VLAN_OFFLOAD),1,0)
   AUTOLOAD:=$(call AutoLoad,30,npu zx279133-lan-conduit,1)
 endef
 
@@ -22,14 +22,17 @@ define KernelPackage/zte-npu/description
 endef
 
 define KernelPackage/zte-npu/config
-  config ZTE_NPU_EXPERIMENTAL_VID_KEY
-    bool "Experimental LAN IPv4 VLAN hardware flow keys"
-    depends on PACKAGE_kmod-zte-npu && PACKAGE_kmod-zte-fnoffload
-    default n
+  config ZTE_NPU_VLAN_OFFLOAD
+    bool "ZTE single-tag IPv4 LAN VLAN hardware offload"
+    depends on TARGET_zte_zx279133 && PACKAGE_kmod-zte-npu && PACKAGE_kmod-zte-fnoffload
+    default y
     help
-      Cold-load NPU VID key layout and admit experimental VLAN pop/push rules.
-      Requires the calibrated SR1010 firmware. Not verified for WAN tagged
-      ingress, IPv6 VLAN or PPPoE combined with VLAN. Disable for normal builds.
+      Enable the NPU VID key layout and matching flowtable VLAN pop/push
+      rules together at boot. Supports one 802.1Q tag on IPv4 LAN traffic
+      routed to a physical WAN, with the tag restored in the reply path.
+      Requires the calibrated SR1010 microcode. Unsupported combinations
+      continue through software flowtable forwarding. This does not create
+      VLANs, change the bridge configuration or enable QoS experiments.
 endef
 
 $(eval $(call KernelPackage,zte-npu))
@@ -40,7 +43,7 @@ define KernelPackage/zte-fnoffload
   DEPENDS:=@TARGET_zte +kmod-zte-npu +kmod-nf-flow
   KCONFIG:=CONFIG_ZTE_ZX279133_FNOFFLOAD
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/zte/fnoffload.ko
-  MODPARAMS.fnoffload:=$(if $(CONFIG_ZTE_NPU_EXPERIMENTAL_VID_KEY),experimental_vlan=1)
+  MODPARAMS.fnoffload:=vlan_offload=$(if $(CONFIG_ZTE_NPU_VLAN_OFFLOAD),1,0)
   AUTOLOAD:=$(call AutoLoad,45,fnoffload)
 endef
 

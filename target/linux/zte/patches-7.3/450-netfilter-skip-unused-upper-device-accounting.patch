@@ -1,0 +1,17 @@
+Subject: [PATCH] netfilter: skip accounting for absent upper devices
+
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -901,6 +901,12 @@
+ 
+ 	/* Aggregate endpoint bytes never enter an arbitrary Conntrack record. */
+ 	nf_flow_clients_account_scope(scope->src, scope->dst, bytes);
++
++	/* A physical path has no bypassed upper device to account for. */
++	if ((!scope->path[1] || scope->path[1] == scope->path[0]) &&
++	    (!scope->path[3] || scope->path[3] == scope->path[2]))
++		return;
++
+ 	rcu_read_lock();
+ 	net = nf_flow_clients_scope_net(scope->owner);
+ 	if (!net)

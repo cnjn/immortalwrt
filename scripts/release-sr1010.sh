@@ -16,7 +16,7 @@ set -eu
 TOPDIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TOPDIR"
 
-IMAGE=bin/targets/zte/zx279133/immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade.bin
+IMAGE=bin/targets/zte/zx279133/immortalwrt-zte-zx279133-zte_zxslc-sr1010-squashfs-sysupgrade.bin
 OUTDIR=bin/release
 
 die() {
@@ -24,7 +24,8 @@ die() {
 	exit 1
 }
 
-grep -q "^CONFIG_SR1010_VENDOR_TEMPLATE=" .config 2>/dev/null ||
+grep -qx "CONFIG_TARGET_zte_zx279133=y" .config 2>/dev/null &&
+	grep -qx "CONFIG_TARGET_ROOTFS_SQUASHFS=y" .config 2>/dev/null ||
 	die "not configured: run ./scripts/configure-sr1010-flash.sh first"
 
 # An ImmortalWrt release pins its revision in these files; a merge of a new

@@ -132,7 +132,7 @@ log_once() {
 has_handler() {
 	local file
 
-	for file in /etc/hotplug.d/dhcp/* /etc/hotplug.d/tftp/* /etc/hotplug.d/neigh/*; do
+	for file in "$@"; do
 		[ -f "$file" ] && return 0
 	done
 
@@ -1100,9 +1100,14 @@ dnsmasq_start()
 	fi
 
 	config_get user_dhcpscript $cfg dhcpscript
-	if has_handler || [ -n "$user_dhcpscript" ]; then
+	if has_handler /etc/hotplug.d/dhcp/* /etc/hotplug.d/tftp/* /etc/hotplug.d/neigh/* ||
+	   [ -n "$user_dhcpscript" ]; then
 		xappend "--dhcp-script=$DHCPSCRIPT"
-		xappend "--script-arp"
+		# A lease-only handler on SR1010 does not need per-neighbor callbacks.
+		if [ "$(board_name)" != "zte,zx279133-sr1010" ] ||
+		   [ -n "$user_dhcpscript" ] || has_handler /etc/hotplug.d/neigh/*; then
+			xappend "--script-arp"
+		fi
 	fi
 
 	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"

@@ -21,6 +21,7 @@ the standard polynomial, which matches the vendor csp_crc32.
 """
 
 import argparse
+from pathlib import Path
 import struct
 import subprocess
 import sys
@@ -40,9 +41,6 @@ BLOCK = 0x20000
 SLOT_SIZE = 0x2900000
 SLOT_SPARE_BLOCKS = 8
 
-# The vendor U-Boot copies the kernel region into an 8 MiB heap before decrypting
-# it; measured: about 8.4 MB can be allocated, 8.87 MB failed. Stay below that.
-VENDOR_UBOOT_MAX_KERNEL = 8_000_000
 BODY_OFS = 0x214          # body start in an unsigned package
 
 H_VERSION = 0x10          # 32-byte version string
@@ -118,24 +116,25 @@ def patch_uboot(uboot):
     return bytes(uboot)
 
 
-def load_template(path):
-    data = open(path, "rb").read()
-    if data[:16] != OUTER_MAGIC:
-        sys.exit("%s: not a vendor upgrade package" % path)
-    hdr_ofs = 0x14 + struct.unpack_from("<I", data, 0x10)[0]
-    hdr = bytearray(data[hdr_ofs:hdr_ofs + VER_HDR_SIZE])
-    if hdr[H_INNER_MAGIC:H_INNER_MAGIC + 16] != INNER_MAGIC:
-        sys.exit("%s: version header inner magic not found" % path)
-    uboot = data[hdr_ofs + VER_HDR_SIZE:hdr_ofs + VER_HDR_SIZE + UBOOT_SIZE]
-    if len(uboot) != UBOOT_SIZE:
-        sys.exit("%s: template body shorter than U-Boot" % path)
+def load_components(header_path, uboot_path):
+    hdr = bytearray(Path(header_path).read_bytes())
+    uboot = Path(uboot_path).read_bytes()
+    if len(hdr) != VER_HDR_SIZE or hdr[H_INNER_MAGIC:H_INNER_MAGIC + 16] != INNER_MAGIC:
+        sys.exit("invalid SR1010 header component")
+    if (crc32(hdr[:H_CRC]) != struct.unpack_from("<I", hdr, H_CRC)[0] or
+            crc32(hdr[:H_CRC2]) != struct.unpack_from("<I", hdr, H_CRC2)[0]):
+        sys.exit("SR1010 header component CRC mismatch")
+    if len(uboot) != UBOOT_SIZE or crc32(uboot) != struct.unpack_from("<I", hdr, H_UBOOT_CRC)[0]:
+        sys.exit("SR1010 U-Boot component size/CRC mismatch")
     return hdr, uboot
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("template", help="vendor .bin providing U-Boot and header")
+    components = Path(__file__).resolve().parents[4] / "package/firmware/zte/flies"
+    ap.add_argument("--header", default=str(components / "sr1010-header.bin"))
+    ap.add_argument("--uboot", default=str(components / "sr1010-uboot.bin"))
     ap.add_argument("kernel", help="OpenWrt FIT image (.itb)")
     ap.add_argument("rootfs", help="squashfs root filesystem")
     ap.add_argument("output", help="output package path")
@@ -143,13 +142,10 @@ def main():
     ap.add_argument("-p", "--product", help="product string (default: template)")
     ap.add_argument("-b", "--build", help="build time string (default: template)")
     ap.add_argument("--openssl", default="openssl", help="openssl binary")
-    ap.add_argument("--patch-uboot", action="store_true",
-                    help="lift the 8 MiB limit on the kernel FIT (patches the U-Boot)")
     args = ap.parse_args()
 
-    hdr, uboot = load_template(args.template)
-    if args.patch_uboot:
-        uboot = patch_uboot(uboot)
+    hdr, uboot = load_components(args.header, args.uboot)
+    uboot = patch_uboot(uboot)
     fit = open(args.kernel, "rb").read()
     rootfs = open(args.rootfs, "rb").read()
 
@@ -179,11 +175,6 @@ def main():
                  "(rootfs is %#x bytes: drop some packages)"
                  % (len(body), SLOT_SIZE - (1 + SLOT_SPARE_BLOCKS) * BLOCK, len(rootfs)))
 
-    if not args.patch_uboot and len(enc_kernel) > VENDOR_UBOOT_MAX_KERNEL:
-        print("WARNING: the kernel FIT is %d bytes. The vendor U-Boot cannot load a kernel "
-              "above about %d bytes (\"malloc tmp_kernel failed\"); this image will not "
-              "boot unless it is built with --patch-uboot."
-              % (len(enc_kernel), VENDOR_UBOOT_MAX_KERNEL), file=sys.stderr)
 
     put_u32(hdr, H_FW_SIZE, len(body))
     put_u32(hdr, H_KERNEL_SIZE, len(enc_kernel))
@@ -193,7 +184,7 @@ def main():
     put_u32(hdr, H_FS_FILEOFS, fs_file_ofs)
     put_u32(hdr, H_FS_CRC, crc32(rootfs))
     put_u32(hdr, H_UBOOT_CRC, crc32(uboot))
-    put_u32(hdr, H_BOOT_INCLUDED, 0)      # never touch the vendor U-Boot
+    put_u32(hdr, H_BOOT_INCLUDED, 0)      # never update the dedicated bootloader partition
 
     put_u32(hdr, H_CRC, crc32(bytes(hdr[:H_CRC])))
     put_u32(hdr, H_CRC2, crc32(bytes(hdr[:H_CRC2])))
