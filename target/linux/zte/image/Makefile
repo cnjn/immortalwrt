@@ -38,6 +38,7 @@ define Device/zte_zxslc-sr1010
   SUPPORTED_DEVICES := zte,zx279133-sr1010
   DEVICE_PACKAGES := \
 		zte-fwslot luci-app-zte-fwslot \
+		kmod-gpio-button-hotplug \
 		kmod-zte-npu kmod-zte-fnoffload kmod-zte-rtl8372n \
 		kmod-usb-core kmod-usb-storage kmod-usb-storage-uas kmod-loop \
 		dnsmasq ethtool ip-full firewall4 nftables-json kmod-nft-offload \

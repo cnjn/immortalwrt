@@ -50,7 +50,7 @@ dae 的 eBPF 程序由主机上的 `clang` 编译，需要先安装带 BPF 目�
 编译产物位于 `bin/targets/zte/zx279133 已经解除原厂 U-Boot 对内核约 8 MiB 的限制。
 
 ```text
-immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade.bin
+immortalwrt-zte-zx279133-zte_zxslc-sr1010-squashfs-sysupgrade.bin
 
 
 
@@ -92,7 +92,7 @@ immortalwrt-zte-zx279133-zte_zxslc-sr1010-flash-squashfs-sysupgrade.bin
 不要将 ITB 加载到 `0x82000000`，该地址可能与展开后的内核重叠。建议使用：
 
 ```text
-tftpboot 0x88000000 immortalwrt-zte-zx279133-zte_zxslc-sr1010-initramfs.itb
+immortalwrt-zte-zx279133-zte_zxslc-sr1010-initramfs.itb
 bootm 0x88000000
 ```
 
