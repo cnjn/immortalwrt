@@ -43,7 +43,8 @@ define Device/zte_zxslc-sr1010
 		kmod-usb-core kmod-usb-storage kmod-usb-storage-uas kmod-loop \
 		dnsmasq ethtool ip-full firewall4 nftables-json kmod-nft-offload \
 		luci-base luci-mod-admin-full luci-theme-bootstrap \
-		luci-proto-ipv6 odhcp6c odhcpd-ipv6only \
+		luci-proto-ipv6 luci-proto-ppp ppp ppp-mod-pppoe \
+		odhcp6c odhcpd-ipv6only \
 		uhttpd uhttpd-mod-ubus openssh-sftp-server \
 		e2fsprogs f2fsck mkf2fs losetup automount autocore luci-app-cpufreq
   # Use the patched U-Boot scratch buffer and the existing fwslot container.
